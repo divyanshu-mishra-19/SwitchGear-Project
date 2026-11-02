@@ -1,0 +1,329 @@
+{
+  "raw_features_order": [
+    "Product_variant",
+    "Breaker_status",
+    "SF6_density",
+    "SF6_temperature",
+    "SF6_dew_point",
+    "Motor_run_time",
+    "Motor_runs_per_day",
+    "Motor_I2T",
+    "Heater_status",
+    "Line_voltage",
+    "Ambient_cabinet_temperature",
+    "Days_since_last_operation",
+    "Contact_life",
+    "Last_trip_coil_energized",
+    "Clearing_time",
+    "Open_latch_time",
+    "Close_latch_time",
+    "Opening_travel_time",
+    "Closing_travel_time",
+    "Total_operation_count",
+    "Non_fault_operation_count",
+    "Fault_operations_count",
+    "Accumulated_motor_run_time",
+    "Heater_current",
+    "Open_average_velocity",
+    "Close_average_velocity",
+    "Restrike_occurrence",
+    "Open_operation_arcing_time"
+  ],
+  "target_col": "Maintenance_required",
+  "target_classes": {
+    "0": "No Maintenance Required",
+    "1": "Maintenance Required"
+  },
+  "transformed_feature_names": [
+    "num__SF6_density",
+    "num__SF6_temperature",
+    "num__SF6_dew_point",
+    "num__Motor_run_time",
+    "num__Motor_runs_per_day",
+    "num__Motor_I2T",
+    "num__Line_voltage",
+    "num__Ambient_cabinet_temperature",
+    "num__Days_since_last_operation",
+    "num__Contact_life",
+    "num__Clearing_time",
+    "num__Open_latch_time",
+    "num__Close_latch_time",
+    "num__Opening_travel_time",
+    "num__Closing_travel_time",
+    "num__Total_operation_count",
+    "num__Non_fault_operation_count",
+    "num__Fault_operations_count",
+    "num__Accumulated_motor_run_time",
+    "num__Heater_current",
+    "num__Open_average_velocity",
+    "num__Close_average_velocity",
+    "num__Restrike_occurrence",
+    "num__Open_operation_arcing_time",
+    "cat__Product_variant_A",
+    "cat__Product_variant_B",
+    "cat__Product_variant_C",
+    "cat__Product_variant_D",
+    "cat__Product_variant_E",
+    "cat__Breaker_status_Closed",
+    "cat__Breaker_status_Open",
+    "cat__Heater_status_Off",
+    "cat__Heater_status_On",
+    "cat__Last_trip_coil_energized_TC1",
+    "cat__Last_trip_coil_energized_TC2"
+  ],
+  "numerical_features": {
+    "SF6_density": {
+      "type": "float",
+      "unit": "kg/m\u00b3",
+      "min": 5.5,
+      "max": 6.957932270353458,
+      "median": 6.007570354643214,
+      "mean": 6.013416261973534,
+      "has_nulls": false
+    },
+    "SF6_temperature": {
+      "type": "float",
+      "unit": "\u00b0C",
+      "min": 0.009054484548624231,
+      "max": 50.0,
+      "median": 20.160146687615153,
+      "mean": 20.285906318434108,
+      "has_nulls": false
+    },
+    "SF6_dew_point": {
+      "type": "float",
+      "unit": "\u00b0C",
+      "min": 0.1184806665688676,
+      "max": 35.0,
+      "median": 20.142644391713368,
+      "mean": 19.957903083182483,
+      "has_nulls": false
+    },
+    "Motor_run_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 0.5,
+      "max": 15.0,
+      "median": 6.489467533817605,
+      "mean": 7.119022717979405,
+      "has_nulls": false
+    },
+    "Motor_runs_per_day": {
+      "type": "int",
+      "unit": "runs/day",
+      "min": 0.0,
+      "max": 5.0,
+      "median": 1.0,
+      "mean": 0.9548571428571428,
+      "has_nulls": false
+    },
+    "Motor_I2T": {
+      "type": "float",
+      "unit": "A\u00b2\u00b7s",
+      "min": 0.1,
+      "max": 25.0,
+      "median": 7.250974405416513,
+      "mean": 8.930526541473306,
+      "has_nulls": false
+    },
+    "Line_voltage": {
+      "type": "float",
+      "unit": "V",
+      "min": 72500.0,
+      "max": 150000.0,
+      "median": 119529.6122946447,
+      "mean": 119628.24978766507,
+      "has_nulls": false
+    },
+    "Ambient_cabinet_temperature": {
+      "type": "float",
+      "unit": "\u00b0C",
+      "min": 32.0,
+      "max": 122.0,
+      "median": 67.83005691996811,
+      "mean": 67.97524214360263,
+      "has_nulls": false
+    },
+    "Days_since_last_operation": {
+      "type": "float",
+      "unit": "days",
+      "min": 13.0,
+      "max": 48.0,
+      "median": 30.0,
+      "mean": 29.85214285714286,
+      "has_nulls": true
+    },
+    "Contact_life": {
+      "type": "float",
+      "unit": "points",
+      "min": 10000.0,
+      "max": 84575.06042327936,
+      "median": 32501.48890828126,
+      "mean": 33724.928958112716,
+      "has_nulls": false
+    },
+    "Clearing_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 0.02,
+      "max": 0.1,
+      "median": 0.04039524941955991,
+      "mean": 0.04696587953020765,
+      "has_nulls": true
+    },
+    "Open_latch_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 0.05,
+      "max": 0.15,
+      "median": 0.1145917319482584,
+      "mean": 0.1114337613839343,
+      "has_nulls": false
+    },
+    "Close_latch_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 0.05,
+      "max": 0.15,
+      "median": 0.11471154591430566,
+      "mean": 0.11201459558676802,
+      "has_nulls": false
+    },
+    "Opening_travel_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 0.05,
+      "max": 0.1454203931269203,
+      "median": 0.08114497012023987,
+      "mean": 0.08114930123891732,
+      "has_nulls": false
+    },
+    "Closing_travel_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 0.05,
+      "max": 0.15,
+      "median": 0.080046861319571,
+      "mean": 0.08084406444765677,
+      "has_nulls": false
+    },
+    "Total_operation_count": {
+      "type": "int",
+      "unit": "cycles",
+      "min": 3902.0,
+      "max": 6105.0,
+      "median": 4010.0,
+      "mean": 4400.101142857143,
+      "has_nulls": false
+    },
+    "Non_fault_operation_count": {
+      "type": "int",
+      "unit": "cycles",
+      "min": 2776.0,
+      "max": 5764.0,
+      "median": 3452.0,
+      "mean": 3736.3697142857145,
+      "has_nulls": false
+    },
+    "Fault_operations_count": {
+      "type": "int",
+      "unit": "cycles",
+      "min": 196.0,
+      "max": 1797.0,
+      "median": 643.0,
+      "mean": 663.7314285714285,
+      "has_nulls": false
+    },
+    "Accumulated_motor_run_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 10.0,
+      "max": 1800.184455271363,
+      "median": 387.4470346332331,
+      "mean": 446.20121198189,
+      "has_nulls": true
+    },
+    "Heater_current": {
+      "type": "float",
+      "unit": "A",
+      "min": 0.0,
+      "max": 3.0,
+      "median": 0.0,
+      "mean": 0.46356157258921615,
+      "has_nulls": true
+    },
+    "Open_average_velocity": {
+      "type": "float",
+      "unit": "m/s",
+      "min": 1.5,
+      "max": 5.497268149057057,
+      "median": 2.849963339112459,
+      "mean": 2.9943102302288045,
+      "has_nulls": true
+    },
+    "Close_average_velocity": {
+      "type": "float",
+      "unit": "m/s",
+      "min": 1.5,
+      "max": 5.551600638057049,
+      "median": 2.819516976284572,
+      "mean": 3.0091549197275933,
+      "has_nulls": true
+    },
+    "Restrike_occurrence": {
+      "type": "float",
+      "unit": "flag (0/1)",
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "mean": 0.09666666666666666,
+      "has_nulls": true
+    },
+    "Open_operation_arcing_time": {
+      "type": "float",
+      "unit": "s",
+      "min": 0.01,
+      "max": 0.08,
+      "median": 0.0234448030733766,
+      "mean": 0.027480926282898232,
+      "has_nulls": true
+    }
+  },
+  "categorical_features": {
+    "Product_variant": {
+      "type": "category",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "mode": "A"
+    },
+    "Breaker_status": {
+      "type": "category",
+      "options": [
+        "Closed",
+        "Open"
+      ],
+      "mode": "Closed"
+    },
+    "Heater_status": {
+      "type": "category",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "mode": "Off"
+    },
+    "Last_trip_coil_energized": {
+      "type": "category",
+      "options": [
+        "TC1",
+        "TC2"
+      ],
+      "mode": "TC1"
+    }
+  }
+}

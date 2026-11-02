@@ -1,0 +1,424 @@
+{
+  "dataset_metadata": {
+    "file_name": "HV Circuit Breaker Maintenance Data.xlsx",
+    "rows": 5000,
+    "columns": 29,
+    "target_column": "Maintenance_required",
+    "feature_count": 28,
+    "duplicates": 0,
+    "total_missing_cells": 15000,
+    "total_missing_percentage": 10.34
+  },
+  "target_distribution": {
+    "counts": {
+      "0": 2965,
+      "1": 2035
+    },
+    "proportions": {
+      "0": 0.593,
+      "1": 0.407
+    },
+    "labels": {
+      "0": "No Maintenance Required",
+      "1": "Maintenance Required"
+    }
+  },
+  "categorical_features": {
+    "Product_variant": {
+      "unique_count": 5,
+      "unique_values": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "value_counts": {
+        "A": 1000,
+        "B": 1000,
+        "C": 1000,
+        "D": 1000,
+        "E": 1000
+      }
+    },
+    "Breaker_status": {
+      "unique_count": 2,
+      "unique_values": [
+        "Closed",
+        "Open"
+      ],
+      "value_counts": {
+        "Closed": 3987,
+        "Open": 1013
+      }
+    },
+    "Heater_status": {
+      "unique_count": 2,
+      "unique_values": [
+        "On",
+        "Off"
+      ],
+      "value_counts": {
+        "Off": 3489,
+        "On": 1511
+      }
+    },
+    "Last_trip_coil_energized": {
+      "unique_count": 2,
+      "unique_values": [
+        "TC1",
+        "TC2"
+      ],
+      "value_counts": {
+        "TC1": 2520,
+        "TC2": 2480
+      }
+    },
+    "Restrike_occurrence": {
+      "unique_count": 2,
+      "unique_values": [
+        "0.0",
+        "1.0"
+      ],
+      "value_counts": {
+        "0.0": 2711,
+        "nan": 2000,
+        "1.0": 289
+      }
+    }
+  },
+  "numerical_features": {
+    "SF6_density": {
+      "mean": 6.007802396574672,
+      "std": 0.2846032864305387,
+      "min": 5.5,
+      "q25": 5.804103928422405,
+      "median": 6.002683251279011,
+      "q75": 6.202336387985438,
+      "max": 6.957932270353458,
+      "outliers_iqr": 12
+    },
+    "SF6_temperature": {
+      "mean": 20.286290683548916,
+      "std": 9.649373253244196,
+      "min": 0.009054484548624231,
+      "q25": 13.336133022781961,
+      "median": 20.184257050153604,
+      "q75": 26.92425366633224,
+      "max": 50.0,
+      "outliers_iqr": 17
+    },
+    "SF6_dew_point": {
+      "mean": 19.88911127350713,
+      "std": 7.696698075983699,
+      "min": 0.09245241267538873,
+      "q25": 14.595718276815747,
+      "median": 20.052274671899703,
+      "q75": 25.31747050911852,
+      "max": 35.0,
+      "outliers_iqr": 0
+    },
+    "Motor_run_time": {
+      "mean": 7.06715648721334,
+      "std": 4.293744018736898,
+      "min": 0.5,
+      "q25": 3.554789628240275,
+      "median": 6.356513767220551,
+      "q75": 10.22143877003066,
+      "max": 15.0,
+      "outliers_iqr": 0
+    },
+    "Motor_runs_per_day": {
+      "mean": 0.9684,
+      "std": 0.9787711880760023,
+      "min": 0.0,
+      "q25": 0.0,
+      "median": 1.0,
+      "q75": 2.0,
+      "max": 7.0,
+      "outliers_iqr": 2
+    },
+    "Motor_I2T": {
+      "mean": 8.89730496762017,
+      "std": 6.770208955826158,
+      "min": 0.1,
+      "q25": 3.435110777332681,
+      "median": 7.188615326645648,
+      "q75": 12.82158258473362,
+      "max": 25.0,
+      "outliers_iqr": 0
+    },
+    "Line_voltage": {
+      "mean": 119746.61422909879,
+      "std": 14850.61690750192,
+      "min": 72500.0,
+      "q25": 109883.19528117581,
+      "median": 119886.79471221115,
+      "q75": 130271.2513416407,
+      "max": 150000.0,
+      "outliers_iqr": 21
+    },
+    "Ambient_cabinet_temperature": {
+      "mean": 68.05817126240126,
+      "std": 14.423789302869338,
+      "min": 32.0,
+      "q25": 58.31898289263068,
+      "median": 67.84216403267351,
+      "q75": 77.98036066869265,
+      "max": 122.0,
+      "outliers_iqr": 19
+    },
+    "Days_since_last_operation": {
+      "mean": 29.93375,
+      "std": 5.4875212218076985,
+      "min": 13.0,
+      "q25": 26.0,
+      "median": 30.0,
+      "q75": 33.0,
+      "max": 50.0,
+      "outliers_iqr": 53
+    },
+    "Contact_life": {
+      "mean": 33800.584962058354,
+      "std": 12721.489591901412,
+      "min": 10000.0,
+      "q25": 24673.939596219767,
+      "median": 32644.052910644386,
+      "q75": 41857.04687267907,
+      "max": 84575.06042327936,
+      "outliers_iqr": 38
+    },
+    "Clearing_time": {
+      "mean": 0.04631154976154418,
+      "std": 0.02512174903369476,
+      "min": 0.02,
+      "q25": 0.022512841456847114,
+      "median": 0.039777019728451116,
+      "q75": 0.06231906838948957,
+      "max": 0.1,
+      "outliers_iqr": 0
+    },
+    "Open_latch_time": {
+      "mean": 0.1115681527803198,
+      "std": 0.024469421280341283,
+      "min": 0.05,
+      "q25": 0.09583731002552184,
+      "median": 0.11458355339616776,
+      "q75": 0.12974289388935095,
+      "max": 0.15,
+      "outliers_iqr": 0
+    },
+    "Close_latch_time": {
+      "mean": 0.11189514181743207,
+      "std": 0.024442766437624,
+      "min": 0.05,
+      "q25": 0.09616472577130192,
+      "median": 0.1145714819316507,
+      "q75": 0.13019803347752754,
+      "max": 0.15,
+      "outliers_iqr": 0
+    },
+    "Opening_travel_time": {
+      "mean": 0.0810815553382235,
+      "std": 0.018881619403733934,
+      "min": 0.05,
+      "q25": 0.0668044257457165,
+      "median": 0.08081753779959348,
+      "q75": 0.09414873449846661,
+      "max": 0.15,
+      "outliers_iqr": 16
+    },
+    "Closing_travel_time": {
+      "mean": 0.08095653449525243,
+      "std": 0.018926458270973587,
+      "min": 0.05,
+      "q25": 0.06670497134993368,
+      "median": 0.0803549299700624,
+      "q75": 0.0938868441552534,
+      "max": 0.15,
+      "outliers_iqr": 11
+    },
+    "Total_operation_count": {
+      "mean": 4399.5146,
+      "std": 800.9333049752922,
+      "min": 3894.0,
+      "q25": 3983.0,
+      "median": 4010.0,
+      "q75": 4048.0,
+      "max": 6105.0,
+      "outliers_iqr": 1000
+    },
+    "Non_fault_operation_count": {
+      "mean": 3737.342,
+      "std": 717.8170143492133,
+      "min": 2776.0,
+      "q25": 3302.0,
+      "median": 3459.0,
+      "q75": 3703.25,
+      "max": 5764.0,
+      "outliers_iqr": 990
+    },
+    "Fault_operations_count": {
+      "mean": 662.1726,
+      "std": 246.32343342851337,
+      "min": 196.0,
+      "q25": 496.0,
+      "median": 638.0,
+      "q75": 793.0,
+      "max": 1797.0,
+      "outliers_iqr": 118
+    },
+    "Accumulated_motor_run_time": {
+      "mean": 438.90928118634014,
+      "std": 304.05319228348554,
+      "min": 10.0,
+      "q25": 207.01341779354482,
+      "median": 382.2604725794107,
+      "q75": 601.124315772425,
+      "max": 1800.184455271363,
+      "outliers_iqr": 76
+    },
+    "Heater_current": {
+      "mean": 0.4714117854582897,
+      "std": 0.7577809384371152,
+      "min": 0.0,
+      "q25": 0.0,
+      "median": 0.0,
+      "q75": 1.0777527840718706,
+      "max": 3.0,
+      "outliers_iqr": 6
+    },
+    "Open_average_velocity": {
+      "mean": 2.9924282389203327,
+      "std": 0.8493611885488658,
+      "min": 1.5,
+      "q25": 2.335640386726383,
+      "median": 2.8490250081662043,
+      "q75": 3.6621756810191264,
+      "max": 5.497268149057057,
+      "outliers_iqr": 0
+    },
+    "Close_average_velocity": {
+      "mean": 3.0149185245897905,
+      "std": 0.8621435396896159,
+      "min": 1.5,
+      "q25": 2.344460214796152,
+      "median": 2.8206112076105603,
+      "q75": 3.6965632485492153,
+      "max": 5.551600638057049,
+      "outliers_iqr": 0
+    },
+    "Restrike_occurrence": {
+      "mean": 0.09633333333333334,
+      "std": 0.2950970173328895,
+      "min": 0.0,
+      "q25": 0.0,
+      "median": 0.0,
+      "q75": 0.0,
+      "max": 1.0,
+      "outliers_iqr": 289
+    },
+    "Open_operation_arcing_time": {
+      "mean": 0.027668376455202294,
+      "std": 0.01710377872694787,
+      "min": 0.01,
+      "q25": 0.013218648345661124,
+      "median": 0.023419721329905892,
+      "q75": 0.036640628167933745,
+      "max": 0.08,
+      "outliers_iqr": 55
+    }
+  },
+  "missing_values": {
+    "Days_since_last_operation": {
+      "count": 1000,
+      "percentage": 20.0
+    },
+    "Clearing_time": {
+      "count": 1000,
+      "percentage": 20.0
+    },
+    "Accumulated_motor_run_time": {
+      "count": 2000,
+      "percentage": 40.0
+    },
+    "Heater_current": {
+      "count": 2000,
+      "percentage": 40.0
+    },
+    "Open_average_velocity": {
+      "count": 2000,
+      "percentage": 40.0
+    },
+    "Close_average_velocity": {
+      "count": 2000,
+      "percentage": 40.0
+    },
+    "Restrike_occurrence": {
+      "count": 2000,
+      "percentage": 40.0
+    },
+    "Open_operation_arcing_time": {
+      "count": 3000,
+      "percentage": 60.0
+    }
+  },
+  "missing_by_product_variant": {
+    "A": {
+      "Accumulated_motor_run_time": 1000,
+      "Heater_current": 1000,
+      "Open_average_velocity": 1000,
+      "Close_average_velocity": 1000,
+      "Restrike_occurrence": 1000,
+      "Open_operation_arcing_time": 1000
+    },
+    "B": {
+      "Restrike_occurrence": 1000,
+      "Open_operation_arcing_time": 1000
+    },
+    "C": {
+      "Days_since_last_operation": 1000,
+      "Clearing_time": 1000,
+      "Accumulated_motor_run_time": 1000,
+      "Heater_current": 1000,
+      "Open_average_velocity": 1000,
+      "Close_average_velocity": 1000,
+      "Open_operation_arcing_time": 1000
+    },
+    "D": {},
+    "E": {}
+  },
+  "target_correlations": {
+    "Open_operation_arcing_time": 0.1593,
+    "Motor_I2T": 0.1314,
+    "Fault_operations_count": 0.1106,
+    "Close_latch_time": 0.0441,
+    "Restrike_occurrence": 0.0362,
+    "Clearing_time": 0.036,
+    "Opening_travel_time": 0.0271,
+    "Open_latch_time": 0.0266,
+    "Days_since_last_operation": 0.0237,
+    "SF6_temperature": 0.0168,
+    "Close_average_velocity": 0.015,
+    "SF6_density": 0.0053,
+    "Heater_current": 0.0022,
+    "Open_average_velocity": 0.0,
+    "Ambient_cabinet_temperature": -0.0106,
+    "Line_voltage": -0.0224,
+    "Accumulated_motor_run_time": -0.0233,
+    "Motor_run_time": -0.0308,
+    "Motor_runs_per_day": -0.0317,
+    "Closing_travel_time": -0.0546,
+    "SF6_dew_point": -0.0582,
+    "Contact_life": -0.1923,
+    "Total_operation_count": -0.2726,
+    "Non_fault_operation_count": -0.3432
+  },
+  "domain_assessment": {
+    "data_nature": "Semi-synthetically derived by utility engineers for critical electrical infrastructure maintenance research",
+    "independent_measurements": true,
+    "grouping_variable": "Product_variant (represents 5 utility operating fleets A through E)",
+    "timestamp_present": false,
+    "identifier_present": false
+  }
+}
