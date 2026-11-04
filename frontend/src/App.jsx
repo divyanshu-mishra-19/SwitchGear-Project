@@ -25,7 +25,7 @@ const BREAKER_TYPES = [
 const MODELS = [
   { id: 'XGBoost (Fine-Tuned)', name: 'XGBoost (Fine-Tuned) — Primary' },
   { id: 'XGBoost (Baseline)', name: 'XGBoost (Baseline / Default)' },
-  { id: 'Random Forest', name: 'Random Forest (Bagging Ensemble)' },
+  { id: 'Random Forest', name: 'Random Forest' },
   { id: 'Gradient Boosting (GBM)', name: 'Gradient Boosting (GBM)' }
 ];
 
