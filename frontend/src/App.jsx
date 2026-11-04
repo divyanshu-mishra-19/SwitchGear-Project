@@ -706,11 +706,8 @@ export default function App() {
                     <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: comparison.consensus_label === 'Maintenance Required' ? '#DC2626' : '#16A34A', margin: '2px 0' }}>
                       {comparison.consensus_label}
                     </h3>
-                    <p style={{ fontSize: '0.85rem', color: '#475569' }}>
-                      <strong>{comparison.agreement_percentage}% Model Agreement</strong> ({comparison.vote_summary['Maintenance Required']} voted Maintenance, {comparison.vote_summary['No Maintenance Required']} voted Normal).
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B', marginTop: '2px' }}>
-                        Agreement reflects voting consensus among models; it is not a guarantee of operational accuracy.
-                      </span>
+                    <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0 }}>
+                      <strong>{comparison.agreement_percentage}% Model Agreement</strong> ({comparison.vote_summary['Maintenance Required']} Maintenance, {comparison.vote_summary['No Maintenance Required']} Normal)
                     </p>
                   </div>
 
@@ -720,7 +717,7 @@ export default function App() {
                 </div>
 
                 {/* 4 Models Comparison Grid (2 in each row) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '1.75rem' }}>
                   {comparison.comparisons.map((m, idx) => {
                     const isModelMaint = m.predicted_class === 1;
                     const cm = m.confusion_matrix || {};
@@ -733,14 +730,14 @@ export default function App() {
                           borderTop: `4px solid ${isModelMaint ? '#DC2626' : '#16A34A'}`
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
                             {m.model_name}
                           </h4>
                           <span
                             style={{
                               display: 'inline-block',
-                              padding: '0.25rem 0.65rem',
+                              padding: '0.2rem 0.6rem',
                               borderRadius: '4px',
                               fontSize: '0.75rem',
                               fontWeight: 700,
@@ -754,12 +751,9 @@ export default function App() {
 
                         {/* Test Evaluation Metrics (Held-out 750 Test Breakers) */}
                         <div style={{ backgroundColor: '#F8FAFC', borderRadius: '6px', padding: '0.75rem', fontSize: '0.75rem', border: '1px solid #E2E8F0' }}>
-                          <div style={{ fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                            Held-Out Test Results (750 Test Breakers):
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px', color: '#475569' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px', color: '#475569', marginBottom: '0.65rem' }}>
                             <div>Accuracy: <strong>{(m.test_accuracy * 100).toFixed(1)}%</strong></div>
-                            <div>F1 Score (Pos=1): <strong>{(m.test_f1 * 100).toFixed(1)}%</strong></div>
+                            <div>F1 Score: <strong>{(m.test_f1 * 100).toFixed(1)}%</strong></div>
                             <div>Precision: <strong>{(m.test_precision * 100).toFixed(1)}%</strong></div>
                             <div>Recall: <strong>{(m.test_recall * 100).toFixed(1)}%</strong></div>
                             <div style={{ gridColumn: 'span 2' }}>ROC-AUC: <strong>{m.test_roc_auc?.toFixed(4)}</strong></div>
@@ -767,11 +761,7 @@ export default function App() {
 
                           {/* Confusion Matrix Formatted as 2x2 Table */}
                           {cm.tn !== undefined && (
-                            <div style={{ marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid #E2E8F0' }}>
-                              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569', marginBottom: '5px', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Confusion Matrix (Held-Out Test Set)</span>
-                                <span style={{ fontSize: '0.68rem', fontWeight: 500, color: '#94A3B8' }}>N = 750</span>
-                              </div>
+                            <div style={{ paddingTop: '0.65rem', borderTop: '1px solid #E2E8F0' }}>
                               <table
                                 style={{
                                   width: '100%',
@@ -815,9 +805,34 @@ export default function App() {
                                   </tr>
                                 </tbody>
                               </table>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#64748B', marginTop: '4px', padding: '0 2px' }}>
-                                <span><strong style={{ color: '#15803D' }}>TN</strong>: True Normal (427) • <strong style={{ color: '#D97706' }}>FP</strong>: False Alarm ({cm.fp})</span>
-                                <span><strong style={{ color: '#DC2626' }}>FN</strong>: Missed Fault ({cm.fn}) • <strong style={{ color: '#15803D' }}>TP</strong>: True Maint ({cm.tp})</span>
+
+                              {/* Aligned Legend */}
+                              <div
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: '1fr 1fr',
+                                  gap: '3px 12px',
+                                  fontSize: '0.68rem',
+                                  marginTop: '6px',
+                                  padding: '4px 8px',
+                                  backgroundColor: '#F8FAFC',
+                                  borderRadius: '4px',
+                                  border: '1px solid #E2E8F0',
+                                  color: '#475569'
+                                }}
+                              >
+                                <div>
+                                  <strong style={{ color: '#15803D' }}>TN:</strong> True Normal ({cm.tn})
+                                </div>
+                                <div>
+                                  <strong style={{ color: '#D97706' }}>FP:</strong> False Alarm ({cm.fp})
+                                </div>
+                                <div>
+                                  <strong style={{ color: '#DC2626' }}>FN:</strong> Missed Fault ({cm.fn})
+                                </div>
+                                <div>
+                                  <strong style={{ color: '#15803D' }}>TP:</strong> True Maint ({cm.tp})
+                                </div>
                               </div>
                             </div>
                           )}
@@ -827,47 +842,32 @@ export default function App() {
                   })}
                 </div>
 
-                {/* Comprehensive Model Comparison Table */}
+                {/* Minimal Model Comparison Table */}
                 <div className="app-card" style={{ padding: '1.25rem 1.5rem', marginBottom: '2rem' }}>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span>Model Performance Comparison Benchmark (Held-Out Test Set)</span>
+                  <div style={{ marginBottom: '0.85rem' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                      Model Comparison Table
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '2px' }}>
-                      Standardized comparison across all 4 production-grade models evaluated on the identical untouched 750-sample test split (445 Normal, 305 Maintenance Required). Positive class is Class 1 (Maintenance Required).
-                    </p>
                   </div>
 
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'center' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #CBD5E1', color: '#334155', fontWeight: 700, fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
-                          <th style={{ padding: '0.65rem 0.75rem' }}>Model</th>
-                          <th style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>Test Accuracy</th>
-                          <th style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>Precision (Pos=1)</th>
-                          <th style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>Recall (Pos=1)</th>
-                          <th style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>F1-Score</th>
-                          <th style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>ROC-AUC</th>
-                          <th style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>False Alarms (FP)</th>
-                          <th style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>Missed Faults (FN)</th>
-                          <th style={{ padding: '0.65rem 0.75rem' }}>Operational Tradeoff / Rationale</th>
+                          <th style={{ padding: '0.65rem 0.75rem', textAlign: 'left' }}>Model</th>
+                          <th style={{ padding: '0.65rem 0.5rem' }}>Accuracy</th>
+                          <th style={{ padding: '0.65rem 0.5rem' }}>Precision</th>
+                          <th style={{ padding: '0.65rem 0.5rem' }}>Recall</th>
+                          <th style={{ padding: '0.65rem 0.5rem' }}>F1-Score</th>
+                          <th style={{ padding: '0.65rem 0.5rem' }}>ROC-AUC</th>
+                          <th style={{ padding: '0.65rem 0.5rem' }}>False Alarms (FP)</th>
+                          <th style={{ padding: '0.65rem 0.5rem' }}>Missed Faults (FN)</th>
                         </tr>
                       </thead>
                       <tbody>
                         {comparison.comparisons.map((m, idx) => {
                           const isPrimary = m.model_name.includes('Fine-Tuned');
                           const cm = m.confusion_matrix || {};
-
-                          let tradeoffText = "";
-                          if (m.model_name.includes('Fine-Tuned')) {
-                            tradeoffText = "Recommended Primary: Highest ROC-AUC (0.9826) with optimal balance between low false alarms (18) and high fault capture (85.3% recall).";
-                          } else if (m.model_name.includes('Baseline')) {
-                            tradeoffText = "Baseline: Marginally higher raw recall (86.6%) but incurs 33% more false alarms (24 vs 18), increasing unnecessary field dispatch costs.";
-                          } else if (m.model_name.includes('Random Forest')) {
-                            tradeoffText = "Conservative: Highest precision (97.7%) and lowest false alarms (6), but misses 54 critical faults (82.3% recall).";
-                          } else {
-                            tradeoffText = "Standard Baseline: High precision (97.3%), but highest fault miss count (56 missed maintenance events).";
-                          }
 
                           return (
                             <tr
@@ -877,37 +877,36 @@ export default function App() {
                                 backgroundColor: isPrimary ? '#F0F9FF' : (idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA')
                               }}
                             >
-                              <td style={{ padding: '0.7rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <span style={{ fontWeight: 700, color: isPrimary ? '#0369A1' : '#0F172A' }}>{m.model_name}</span>
-                                {isPrimary && (
-                                  <span style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', backgroundColor: '#BAE6FD', color: '#0369A1', borderRadius: '4px', fontWeight: 800 }}>
-                                    PRIMARY
-                                  </span>
-                                )}
+                              <td style={{ padding: '0.65rem 0.75rem', textAlign: 'left', fontWeight: 700, color: isPrimary ? '#0369A1' : '#0F172A' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                  <span>{m.model_name}</span>
+                                  {isPrimary && (
+                                    <span style={{ fontSize: '0.65rem', padding: '0.12rem 0.35rem', backgroundColor: '#BAE6FD', color: '#0369A1', borderRadius: '4px', fontWeight: 800 }}>
+                                      PRIMARY
+                                    </span>
+                                  )}
+                                </div>
                               </td>
-                              <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', fontWeight: 700, color: '#0F172A' }}>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 700, color: '#0F172A' }}>
                                 {(m.test_accuracy * 100).toFixed(1)}%
                               </td>
-                              <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', color: m.test_precision > 0.95 ? '#15803D' : '#334155', fontWeight: m.test_precision > 0.95 ? 700 : 500 }}>
+                              <td style={{ padding: '0.65rem 0.5rem', color: m.test_precision > 0.95 ? '#15803D' : '#334155', fontWeight: m.test_precision > 0.95 ? 700 : 500 }}>
                                 {(m.test_precision * 100).toFixed(1)}%
                               </td>
-                              <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', color: m.test_recall > 0.85 ? '#15803D' : '#334155', fontWeight: m.test_recall > 0.85 ? 700 : 500 }}>
+                              <td style={{ padding: '0.65rem 0.5rem', color: m.test_recall > 0.85 ? '#15803D' : '#334155', fontWeight: m.test_recall > 0.85 ? 700 : 500 }}>
                                 {(m.test_recall * 100).toFixed(1)}%
                               </td>
-                              <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', fontWeight: 700, color: '#0F172A' }}>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 700, color: '#0F172A' }}>
                                 {(m.test_f1 * 100).toFixed(1)}%
                               </td>
-                              <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', fontWeight: 700, color: isPrimary ? '#0284C7' : '#334155' }}>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 700, color: isPrimary ? '#0284C7' : '#334155' }}>
                                 {m.test_roc_auc?.toFixed(4)}
                               </td>
-                              <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', color: cm.fp <= 7 ? '#15803D' : (cm.fp >= 20 ? '#DC2626' : '#D97706'), fontWeight: 700 }}>
+                              <td style={{ padding: '0.65rem 0.5rem', color: cm.fp <= 7 ? '#15803D' : (cm.fp >= 20 ? '#DC2626' : '#D97706'), fontWeight: 700 }}>
                                 {cm.fp ?? '—'}
                               </td>
-                              <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', color: cm.fn <= 45 ? '#15803D' : '#DC2626', fontWeight: 700 }}>
+                              <td style={{ padding: '0.65rem 0.5rem', color: cm.fn <= 45 ? '#15803D' : '#DC2626', fontWeight: 700 }}>
                                 {cm.fn ?? '—'}
-                              </td>
-                              <td style={{ padding: '0.7rem 0.75rem', fontSize: '0.74rem', color: '#475569', maxWidth: '320px', lineHeight: 1.35 }}>
-                                {tradeoffText}
                               </td>
                             </tr>
                           );
