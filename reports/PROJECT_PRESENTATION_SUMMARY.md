@@ -43,6 +43,8 @@ flowchart TD
 * **Author Note on Provenance:** As disclosed by the authors (Ghosh & Mittal, 2026), this dataset is semi-synthetically derived for research/educational purposes based on utility substation monitoring guidelines across five utility fleets (`Product_variant` A–E, 1,000 records each).
 
 ### 2.2 Feature Breakdown (28 Features)
+Keep it simple: these are input features the model uses when predicting maintenance. `Motor_run_time` refers to motor operating time; `Product_variant_A` indicates whether the item is variant A. Their exact units and encoding depend on your dataset.
+
 | Category | Count | Features Included |
 | :--- | :---: | :--- |
 | **Asset Identity & State** | 4 | `Product_variant` (Fleet A, B, C, D, E), `Breaker_status` (Open/Closed), `Heater_status` (On/Off), `Last_trip_coil_energized` (TC1/TC2) |

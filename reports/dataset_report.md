@@ -32,8 +32,10 @@
 
 ---
 
-## 4. Input Features: Descriptions, Physical Units, and Value Ranges
-The 28 input features are categorized below across physical breaker subsystems:
+## 4. Input Features: Descriptions and Encoding
+Keep it simple: these are input features the model uses when predicting maintenance. `Motor_run_time` refers to motor operating time; `Product_variant_A` indicates whether the item is variant A. Their exact units and encoding depend on your dataset.
+
+Below is the structured breakdown of the 28 input features used by the model:
 
 | # | Feature Name | Data Type | Physical Unit | Observed Range [Min – Max] | Mean ± Std | Physical Description |
 | :-: | :--- | :---: | :---: | :---: | :---: | :--- |
