@@ -1,97 +1,49 @@
 {
   "project_name": "CircuitGuard AI",
-  "primary_model": "TabNet (Pretrained + Fine-Tuned)",
-  "approach": "Self-supervised feature reconstruction pretraining followed by supervised classification fine-tuning",
+  "primary_model": "XGBoost (Fine-Tuned)",
+  "tuning_strategy": "5-Fold Stratified Cross-Validation on Training + Validation Data",
+  "scoring_metric": "f1 (Positive class = 1: Maintenance Required)",
   "random_state": 42,
-  "input_dim": 35,
-  "feature_names": [
-    "num__SF6_density",
-    "num__SF6_temperature",
-    "num__SF6_dew_point",
-    "num__Motor_run_time",
-    "num__Motor_runs_per_day",
-    "num__Motor_I2T",
-    "num__Line_voltage",
-    "num__Ambient_cabinet_temperature",
-    "num__Days_since_last_operation",
-    "num__Contact_life",
-    "num__Clearing_time",
-    "num__Open_latch_time",
-    "num__Close_latch_time",
-    "num__Opening_travel_time",
-    "num__Closing_travel_time",
-    "num__Total_operation_count",
-    "num__Non_fault_operation_count",
-    "num__Fault_operations_count",
-    "num__Accumulated_motor_run_time",
-    "num__Heater_current",
-    "num__Open_average_velocity",
-    "num__Close_average_velocity",
-    "num__Restrike_occurrence",
-    "num__Open_operation_arcing_time",
-    "cat__Product_variant_A",
-    "cat__Product_variant_B",
-    "cat__Product_variant_C",
-    "cat__Product_variant_D",
-    "cat__Product_variant_E",
-    "cat__Breaker_status_Closed",
-    "cat__Breaker_status_Open",
-    "cat__Heater_status_Off",
-    "cat__Heater_status_On",
-    "cat__Last_trip_coil_energized_TC1",
-    "cat__Last_trip_coil_energized_TC2"
-  ],
-  "class_labels": {
-    "0": "No Maintenance Required",
-    "1": "Maintenance Required"
+  "search_space": {
+    "n_estimators": [
+      100,
+      150,
+      200
+    ],
+    "max_depth": [
+      4,
+      5,
+      6
+    ],
+    "learning_rate": [
+      0.03,
+      0.05,
+      0.1
+    ],
+    "subsample": [
+      0.8,
+      1.0
+    ],
+    "colsample_bytree": [
+      0.8,
+      1.0
+    ],
+    "min_child_weight": [
+      1,
+      3
+    ]
   },
-  "validation_benchmarks": {
-    "TabNet (Pretrained + Fine-Tuned)": {
-      "accuracy": 0.892,
-      "precision": 0.9827586206896551,
-      "recall": 0.7475409836065574,
-      "f1": 0.8491620111731844,
-      "roc_auc": 0.9754798305396943,
-      "training_time_seconds": 6.83,
-      "approach": "Transfer Learning (Self-supervised pretraining + Fine-tuning)"
-    },
-    "TabNet (Scratch - No Pretraining)": {
-      "accuracy": 0.9226666666666666,
-      "precision": 0.9523809523809523,
-      "recall": 0.8524590163934426,
-      "f1": 0.8996539792387543,
-      "roc_auc": 0.9824645422729785,
-      "training_time_seconds": 3.59,
-      "approach": "Supervised from Scratch"
-    },
-    "Random Forest": {
-      "accuracy": 0.9293333333333333,
-      "precision": 0.9809160305343512,
-      "recall": 0.8426229508196721,
-      "f1": 0.9065255731922398,
-      "roc_auc": 0.9847338368023577,
-      "training_time_seconds": 0.53,
-      "approach": "Baseline Supervised"
-    },
-    "XGBoost": {
-      "accuracy": 0.9186666666666666,
-      "precision": 0.9485294117647058,
-      "recall": 0.8459016393442623,
-      "f1": 0.8942807625649913,
-      "roc_auc": 0.9834665684288082,
-      "training_time_seconds": 0.09,
-      "approach": "Baseline Supervised"
-    },
-    "Gradient Boosting (GBM)": {
-      "accuracy": 0.9253333333333333,
-      "precision": 0.9662921348314607,
-      "recall": 0.8459016393442623,
-      "f1": 0.9020979020979021,
-      "roc_auc": 0.9841223061337263,
-      "training_time_seconds": 1.78,
-      "approach": "Baseline Supervised"
-    }
+  "total_candidates": 216,
+  "total_fits": 1080,
+  "selected_best_parameters": {
+    "colsample_bytree": 0.8,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "min_child_weight": 1,
+    "n_estimators": 200,
+    "subsample": 1.0
   },
-  "total_training_walltime_seconds": 12.91,
-  "device": "macOS M4 (Accelerate / MPS / CPU)"
+  "best_cv_f1_score": 0.8884292451573632,
+  "tuning_walltime_seconds": 21.8,
+  "training_walltime_total_seconds": 24.25
 }

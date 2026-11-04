@@ -120,7 +120,7 @@ class HealthResponse(BaseModel):
 class ModelInfoResponse(BaseModel):
     project_name: str
     primary_model: str
-    transfer_learning_approach: str
+    transfer_learning_approach: Optional[str] = "Hyperparameter optimization via Stratified 5-Fold Cross-Validation on training data"
     target_classes: Dict[str, str]
     input_features_count: int
     test_set_evaluation: Dict[str, Any]

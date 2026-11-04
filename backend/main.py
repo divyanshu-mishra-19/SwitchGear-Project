@@ -76,8 +76,8 @@ def get_model_info():
     engine = get_engine()
     return ModelInfoResponse(
         project_name="CircuitGuard AI",
-        primary_model="TabNet (Transfer Learning)",
-        transfer_learning_approach="Self-supervised feature reconstruction pretraining followed by supervised classification fine-tuning",
+        primary_model="XGBoost (Fine-Tuned)",
+        transfer_learning_approach="Hyperparameter optimization via Stratified 5-Fold Cross-Validation on training data",
         target_classes={
             "0": "No Maintenance Required",
             "1": "Maintenance Required"
@@ -130,7 +130,7 @@ def compare_models(features: CircuitBreakerInput):
 @router.post("/predict-batch", response_model=BatchPredictionResponse, tags=["Inference"])
 async def predict_batch(
     file: Optional[UploadFile] = File(None),
-    model_name: Optional[str] = Query("TabNet (Transfer Learning)")
+    model_name: Optional[str] = Query("XGBoost (Fine-Tuned)")
 ):
     engine = get_engine()
     if file is None:

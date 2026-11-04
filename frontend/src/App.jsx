@@ -8,11 +8,8 @@ import {
   ChevronDown,
   ChevronUp,
   Activity,
-  Gauge,
-  Thermometer,
-  ShieldCheck,
-  Check,
-  AlertOctagon
+  BookOpen,
+  Info
 } from 'lucide-react';
 
 const API_BASE = '/api';
@@ -26,17 +23,18 @@ const BREAKER_TYPES = [
 ];
 
 const MODELS = [
-  { id: 'TabNet (Transfer Learning)', name: 'TabNet (Transfer Learning)' },
-  { id: 'Random Forest', name: 'Random Forest' },
-  { id: 'XGBoost', name: 'XGBoost' },
+  { id: 'XGBoost (Fine-Tuned)', name: 'XGBoost (Fine-Tuned) — Primary' },
+  { id: 'XGBoost (Baseline)', name: 'XGBoost (Baseline / Default)' },
+  { id: 'Random Forest', name: 'Random Forest (Bagging Ensemble)' },
   { id: 'Gradient Boosting (GBM)', name: 'Gradient Boosting (GBM)' }
 ];
 
 export default function App() {
   const [selectedBreaker, setSelectedBreaker] = useState('A');
-  const [selectedModel, setSelectedModel] = useState('TabNet (Transfer Learning)');
+  const [selectedModel, setSelectedModel] = useState('XGBoost (Fine-Tuned)');
   const [selectedScenario, setSelectedScenario] = useState('Normal Operating Condition');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showReferences, setShowReferences] = useState(false);
   const [viewMode, setViewMode] = useState('single'); // 'single' | 'compare'
 
   const [scenarios, setScenarios] = useState({});
@@ -44,7 +42,7 @@ export default function App() {
   const [comparing, setComparing] = useState(false);
   const [backendReady, setBackendReady] = useState(false);
 
-  // Core features state
+  // Core features state initialized with nominal operating telemetry
   const [features, setFeatures] = useState({
     Product_variant: 'A',
     Breaker_status: 'Closed',
@@ -149,7 +147,7 @@ export default function App() {
         const data = await res.json();
         setResult(data);
       } else {
-        alert('Prediction failed. Make sure backend is running.');
+        alert('Prediction request failed. Check server status.');
       }
     } catch (e) {
       alert('Cannot connect to backend: ' + e.message);
@@ -172,7 +170,7 @@ export default function App() {
         const data = await res.json();
         setComparison(data);
       } else {
-        alert('Comparison failed.');
+        alert('Comparison request failed.');
       }
     } catch (e) {
       alert('Error connecting to backend: ' + e.message);
@@ -334,7 +332,7 @@ export default function App() {
             }}
           />
           <span style={{ color: backendReady ? '#16A34A' : '#D97706', fontWeight: 600 }}>
-            {backendReady ? 'AI Inference Core Ready' : 'Connecting to Core...'}
+            {backendReady ? 'Inference Core Active' : 'Connecting to Core...'}
           </span>
         </div>
       </aside>
@@ -347,7 +345,7 @@ export default function App() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0F172A' }}>
-              {viewMode === 'compare' ? 'Multi-Model Comparison' : 'Circuit Breaker Assessment'}
+              {viewMode === 'compare' ? 'Multi-Model Benchmark & Comparison' : 'Circuit Breaker Assessment'}
             </h2>
             <p style={{ fontSize: '0.85rem', color: '#64748B', marginTop: '2px' }}>
               {BREAKER_TYPES.find((b) => b.id === selectedBreaker)?.name} • Operating under {selectedModel}
@@ -433,19 +431,22 @@ export default function App() {
                     <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: isMaint ? '#DC2626' : '#16A34A', margin: '2px 0' }}>
                       {result.predicted_label}
                     </h3>
-                    <p style={{ fontSize: '0.85rem', color: '#475569' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#475569', maxWidth: '620px' }}>
                       {result.explanation}
                     </p>
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'right', paddingLeft: '1.5rem', borderLeft: '1px solid #E2E8F0' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                    Model Confidence
+                <div style={{ textAlign: 'right', paddingLeft: '1.5rem', borderLeft: '1px solid #E2E8F0', minWidth: '150px' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                    Estimated Class Probability
                   </div>
                   <div style={{ fontSize: '2rem', fontWeight: 800, color: isMaint ? '#DC2626' : '#16A34A' }}>
                     {(result.confidence * 100).toFixed(1)}%
                   </div>
+                  <span style={{ fontSize: '0.68rem', color: '#94A3B8', display: 'block', marginTop: '2px' }}>
+                    Calibrated output (not guaranteed accuracy)
+                  </span>
                 </div>
               </div>
             ) : (
@@ -464,7 +465,7 @@ export default function App() {
                   ⚡ Ready to assess circuit breaker health
                 </p>
                 <p style={{ fontSize: '0.82rem', marginTop: '4px' }}>
-                  Adjust the essential sliders below and click <strong>"Predict Maintenance"</strong> or choose a preset.
+                  Adjust the operating sliders below and click <strong>"Predict Maintenance"</strong> or choose a preset condition.
                 </p>
               </div>
             )}
@@ -628,7 +629,7 @@ export default function App() {
             </div>
 
             {/* Optional Collapsible Advanced Details */}
-            <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
+            <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1rem', marginBottom: '1.5rem' }}>
               <button
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 style={{
@@ -700,13 +701,16 @@ export default function App() {
                 >
                   <div>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                      Ensemble Consensus Verdict
+                      Ensemble Voting Summary
                     </span>
                     <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: comparison.consensus_label === 'Maintenance Required' ? '#DC2626' : '#16A34A', margin: '2px 0' }}>
                       {comparison.consensus_label}
                     </h3>
                     <p style={{ fontSize: '0.85rem', color: '#475569' }}>
-                      <strong>{comparison.agreement_percentage}% Agreement</strong> ({comparison.vote_summary['Maintenance Required']} voted Maintenance, {comparison.vote_summary['No Maintenance Required']} voted Normal)
+                      <strong>{comparison.agreement_percentage}% Model Agreement</strong> ({comparison.vote_summary['Maintenance Required']} voted Maintenance, {comparison.vote_summary['No Maintenance Required']} voted Normal).
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B', marginTop: '2px' }}>
+                        Agreement reflects voting consensus among models; it is not a guarantee of operational accuracy.
+                      </span>
                     </p>
                   </div>
 
@@ -716,9 +720,10 @@ export default function App() {
                 </div>
 
                 {/* 4 Models Comparison Grid (2 in each row) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
                   {comparison.comparisons.map((m, idx) => {
                     const isModelMaint = m.predicted_class === 1;
+                    const cm = m.confusion_matrix || {};
                     return (
                       <div
                         key={idx}
@@ -728,17 +733,16 @@ export default function App() {
                           borderTop: `4px solid ${isModelMaint ? '#DC2626' : '#16A34A'}`
                         }}
                       >
-                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>
-                          {m.model_name}
-                        </h4>
-
-                        <div style={{ marginBottom: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                            {m.model_name}
+                          </h4>
                           <span
                             style={{
                               display: 'inline-block',
-                              padding: '0.25rem 0.6rem',
+                              padding: '0.2rem 0.55rem',
                               borderRadius: '4px',
-                              fontSize: '0.8rem',
+                              fontSize: '0.75rem',
                               fontWeight: 700,
                               backgroundColor: isModelMaint ? '#FEE2E2' : '#DCFCE7',
                               color: isModelMaint ? '#B91C1C' : '#15803D'
@@ -748,11 +752,11 @@ export default function App() {
                           </span>
                         </div>
 
-                        {/* Confidence bar */}
-                        <div>
+                        {/* Estimated Class Probability Bar */}
+                        <div style={{ marginBottom: '0.85rem' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                            <span>Confidence</span>
-                            <span style={{ color: isModelMaint ? '#DC2626' : '#16A34A' }}>
+                            <span>Estimated Class Probability</span>
+                            <span style={{ color: isModelMaint ? '#DC2626' : '#16A34A', fontWeight: 700 }}>
                               {(m.confidence * 100).toFixed(1)}%
                             </span>
                           </div>
@@ -767,11 +771,27 @@ export default function App() {
                           </div>
                         </div>
 
-                        {m.test_f1 && (
-                          <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '0.6rem', borderTop: '1px solid #F1F5F9', paddingTop: '0.4rem' }}>
-                            Test Accuracy: <strong>{(m.test_accuracy * 100).toFixed(1)}%</strong> • F1: <strong>{(m.test_f1 * 100).toFixed(1)}%</strong>
+                        {/* Test Evaluation Metrics (Held-out 750 Test Breakers) */}
+                        <div style={{ backgroundColor: '#F8FAFC', borderRadius: '6px', padding: '0.65rem 0.75rem', fontSize: '0.75rem', border: '1px solid #E2E8F0' }}>
+                          <div style={{ fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                            Held-Out Test Results (750 Samples):
                           </div>
-                        )}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px', color: '#475569' }}>
+                            <div>Accuracy: <strong>{(m.test_accuracy * 100).toFixed(1)}%</strong></div>
+                            <div>F1 Score (Pos=1): <strong>{(m.test_f1 * 100).toFixed(1)}%</strong></div>
+                            <div>Precision: <strong>{(m.test_precision * 100).toFixed(1)}%</strong></div>
+                            <div>Recall: <strong>{(m.test_recall * 100).toFixed(1)}%</strong></div>
+                            <div style={{ gridColumn: 'span 2' }}>ROC-AUC: <strong>{m.test_roc_auc?.toFixed(4)}</strong></div>
+                          </div>
+
+                          {/* Compact Confusion Matrix */}
+                          {cm.tn !== undefined && (
+                            <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #CBD5E1', fontSize: '0.7rem', color: '#64748B' }}>
+                              <span>Confusion Matrix: </span>
+                              <strong style={{ color: '#16A34A' }}>TN: {cm.tn}</strong> • <strong style={{ color: '#D97706' }}>FP: {cm.fp}</strong> | <strong style={{ color: '#EF4444' }}>FN: {cm.fn}</strong> • <strong style={{ color: '#16A34A' }}>TP: {cm.tp}</strong>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -784,6 +804,52 @@ export default function App() {
             )}
           </div>
         )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* VERIFIED REFERENCES & METHODOLOGY FOOTER                      */}
+        {/* ------------------------------------------------------------- */}
+        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1.25rem', marginTop: '1.5rem' }}>
+          <button
+            onClick={() => setShowReferences(!showReferences)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              background: 'none',
+              border: 'none',
+              color: '#475569',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            <BookOpen size={16} color="#1E88E5" />
+            {showReferences ? 'Hide Verified Citations & References' : 'View Verified Citations & References'}
+            {showReferences ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+
+          {showReferences && (
+            <div style={{ marginTop: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: '#475569', lineHeight: 1.5 }}>
+              <p style={{ fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem' }}>
+                Verified Official References & Data Provenance:
+              </p>
+              <ul style={{ paddingLeft: '1.25rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <li>
+                  <strong>Dataset & Substation Maintenance Benchmark:</strong> Ghosh S, Mittal G (2026). <em>"Federated learning for critical electrical infrastructure - handling data heterogeneity for predictive maintenance of substation equipment"</em>, Frontiers in Artificial Intelligence 8:1697175. GitHub repository: <a href="https://github.com/sghosh27/Federated-Learning-for-Critical-Electrical-Infrastructure-Maintenance" target="_blank" rel="noreferrer" style={{ color: '#1E88E5' }}>sghosh27/Federated-Learning-for-Critical-Electrical-Infrastructure-Maintenance</a> (Apache 2.0 License). <em>Note: As stated by the authors, this dataset is semi-synthetically derived for research and educational purposes based on utility substation operational monitoring guidelines.</em>
+                </li>
+                <li>
+                  <strong>XGBoost Algorithm & Optimization:</strong> Chen T, Guestrin C (2016). <em>"XGBoost: A Scalable Tree Boosting System"</em>, Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD '16), pp. 785–794. Official documentation: <a href="https://xgboost.readthedocs.io/" target="_blank" rel="noreferrer" style={{ color: '#1E88E5' }}>xgboost.readthedocs.io</a>.
+                </li>
+                <li>
+                  <strong>Random Forest:</strong> Breiman L (2001). <em>"Random Forests"</em>, Machine Learning, 45(1), pp. 5–32. Scikit-learn documentation: <a href="https://scikit-learn.org/stable/modules/ensemble.html" target="_blank" rel="noreferrer" style={{ color: '#1E88E5' }}>scikit-learn.org/stable/modules/ensemble.html</a>.
+                </li>
+                <li>
+                  <strong>Gradient Tree Boosting:</strong> Friedman JH (2001). <em>"Greedy Function Approximation: A Gradient Boosting Machine"</em>, The Annals of Statistics, 29(5), pp. 1189–1232.
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

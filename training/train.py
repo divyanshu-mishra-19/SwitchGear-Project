@@ -1,215 +1,191 @@
 """
 CircuitGuard AI - Model Training Pipeline
-Implements self-supervised TabNet pretraining, weight transfer, fine-tuning,
-and comparison against baseline models (Random Forest, XGBoost, LightGBM, MLP, Logistic Regression).
+Implements:
+1. Baseline models (Untuned XGBoost, Random Forest, Gradient Boosting, Logistic Regression)
+2. Hyperparameter optimization of XGBoost using 5-Fold Stratified Cross-Validation
+3. Model artifact persistence for production inference
+Note: TabNet has been completely removed in accordance with project requirements.
 """
 
 import os
 import sys
 
-# Prevent OpenMP runtime collision on macOS ARM64
+# Thread isolation for macOS ARM64 and reproducible execution
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 import json
-import warnings
 import time
+import warnings
 import numpy as np
-import torch
 import joblib
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
+)
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier
-from pytorch_tabnet.pretraining import TabNetPretrainer
-from pytorch_tabnet.tab_model import TabNetClassifier
 
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-def train_all_models(
+def train_and_tune_models(
     processed_dir: str = "dataset/processed",
     models_dir: str = "models",
     random_state: int = 42
 ):
-    torch.manual_seed(random_state)
-    np.random.seed(random_state)
     os.makedirs(models_dir, exist_ok=True)
+    np.random.seed(random_state)
 
-    print("Loading preprocessed training and validation arrays...")
-    X_train = np.load(os.path.join(processed_dir, "X_train_trans.npy")).astype(np.float32)
-    y_train = np.load(os.path.join(processed_dir, "y_train.npy")).astype(np.int64)
-    X_val = np.load(os.path.join(processed_dir, "X_val_trans.npy")).astype(np.float32)
-    y_val = np.load(os.path.join(processed_dir, "y_val.npy")).astype(np.int64)
+    print(f"Loading preprocessed arrays from {processed_dir}...")
+    X_train = np.load(os.path.join(processed_dir, "X_train_trans.npy"))
+    y_train = np.load(os.path.join(processed_dir, "y_train.npy"))
+    X_val = np.load(os.path.join(processed_dir, "X_val_trans.npy"))
+    y_val = np.load(os.path.join(processed_dir, "y_val.npy"))
+    X_test = np.load(os.path.join(processed_dir, "X_test_trans.npy"))
+    y_test = np.load(os.path.join(processed_dir, "y_test.npy"))
 
     with open(os.path.join(models_dir, "feature_metadata.json"), "r") as f:
         metadata = json.load(f)
     feature_names = metadata["transformed_feature_names"]
 
-    print(f"X_train shape: {X_train.shape}, X_val shape: {X_val.shape}")
-    print(f"Number of input features: {len(feature_names)}")
+    print(f"X_train: {X_train.shape}, X_val: {X_val.shape}, X_test: {X_test.shape}")
+    print(f"Features count: {len(feature_names)}")
+    print(f"Test Class 0 (Normal): {(y_test == 0).sum()}, Class 1 (Maintenance Required): {(y_test == 1).sum()}")
 
-    val_results = {}
-    training_histories = {}
-    start_all = time.time()
+    # Training + Validation pooled for cross-validation tuning (keeping test set strictly untouched)
+    X_tune = np.vstack([X_train, X_val])
+    y_tune = np.concatenate([y_train, y_val])
 
-    # -------------------------------------------------------------
-    # 1. TABNET TRANSFER LEARNING: SELF-SUPERVISED PRETRAINING
-    # -------------------------------------------------------------
-    print("\n" + "="*60)
-    print("PHASE 1: TabNet Self-Supervised Pretraining (Transfer Learning)")
-    print("="*60)
+    training_records = {}
+    start_total = time.time()
+
+    # -------------------------------------------------------------------------
+    # 1. XGBOOST BASELINE (UNTUNED / DEFAULT SETTINGS)
+    # -------------------------------------------------------------------------
+    print("\n" + "="*70)
+    print("STEP 1: Training XGBoost Baseline (Default Parameters)")
+    print("="*70)
+    xgb_base = XGBClassifier(
+        n_estimators=100,
+        max_depth=6,
+        learning_rate=0.3,
+        subsample=1.0,
+        colsample_bytree=1.0,
+        min_child_weight=1,
+        random_state=random_state,
+        eval_metric="logloss",
+        n_jobs=1
+    )
     t0 = time.time()
-    pretrainer = TabNetPretrainer(
-        optimizer_fn=torch.optim.Adam,
-        optimizer_params=dict(lr=2e-2),
-        mask_type="entmax",
-        n_d=16,
-        n_a=16,
-        n_steps=3,
-        gamma=1.3,
-        seed=random_state,
+    xgb_base.fit(X_train, y_train)
+    xgb_base_time = time.time() - t0
+    joblib.dump(xgb_base, os.path.join(models_dir, "xgboost_baseline.joblib"))
+    print(f"XGBoost Baseline fitted in {xgb_base_time:.2f}s")
+
+    # -------------------------------------------------------------------------
+    # 2. XGBOOST FINE-TUNING (STRATIFIED 5-FOLD CROSS-VALIDATION)
+    # -------------------------------------------------------------------------
+    print("\n" + "="*70)
+    print("STEP 2: Fine-Tuning XGBoost via 5-Fold Stratified Cross-Validation")
+    print("="*70)
+    param_grid = {
+        "n_estimators": [100, 150, 200],
+        "max_depth": [4, 5, 6],
+        "learning_rate": [0.03, 0.05, 0.1],
+        "subsample": [0.8, 1.0],
+        "colsample_bytree": [0.8, 1.0],
+        "min_child_weight": [1, 3]
+    }
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
+    grid_search = GridSearchCV(
+        estimator=XGBClassifier(random_state=random_state, eval_metric="logloss", n_jobs=1),
+        param_grid=param_grid,
+        scoring="f1",
+        cv=cv,
+        n_jobs=-1,
         verbose=1
     )
-    pretrainer.fit(
-        X_train=X_train,
-        eval_set=[X_val],
-        max_epochs=30,
-        patience=10,
-        batch_size=128,
-        virtual_batch_size=64,
-        pretraining_ratio=0.5
-    )
-    pretrain_time = time.time() - t0
-    pretrainer_path = os.path.join(models_dir, "tabnet_pretrainer")
-    pretrainer.save_model(pretrainer_path)
-    print(f"Unsupervised pretraining complete in {pretrain_time:.2f}s. Saved to {pretrainer_path}.zip")
-
-    # -------------------------------------------------------------
-    # 2. TABNET SUPERVISED FINE-TUNING (WEIGHT TRANSFER)
-    # -------------------------------------------------------------
-    print("\n" + "="*60)
-    print("PHASE 2: Supervised TabNet Fine-Tuning (with Pretrained Weights)")
-    print("="*60)
     t0 = time.time()
-    tabnet_finetuned = TabNetClassifier(
-        optimizer_fn=torch.optim.Adam,
-        optimizer_params=dict(lr=2e-2),
-        n_d=16,
-        n_a=16,
-        n_steps=3,
-        gamma=1.3,
-        seed=random_state,
-        verbose=1
-    )
-    tabnet_finetuned.fit(
-        X_train=X_train,
-        y_train=y_train,
-        eval_set=[(X_val, y_val)],
-        eval_name=["val"],
-        eval_metric=["accuracy", "auc"],
-        max_epochs=40,
-        patience=12,
-        batch_size=128,
-        virtual_batch_size=64,
-        from_unsupervised=pretrainer
-    )
-    finetune_time = time.time() - t0
-    tabnet_ft_path = os.path.join(models_dir, "tabnet_finetuned")
-    tabnet_finetuned.save_model(tabnet_ft_path)
-    print(f"Fine-tuning complete in {finetune_time:.2f}s. Saved to {tabnet_ft_path}.zip")
+    grid_search.fit(X_tune, y_tune)
+    tuning_time = time.time() - t0
 
-    ft_preds = tabnet_finetuned.predict(X_val)
-    ft_probs = tabnet_finetuned.predict_proba(X_val)[:, 1]
-    val_results["TabNet (Pretrained + Fine-Tuned)"] = {
-        "accuracy": float(accuracy_score(y_val, ft_preds)),
-        "precision": float(precision_score(y_val, ft_preds)),
-        "recall": float(recall_score(y_val, ft_preds)),
-        "f1": float(f1_score(y_val, ft_preds)),
-        "roc_auc": float(roc_auc_score(y_val, ft_probs)),
-        "training_time_seconds": round(pretrain_time + finetune_time, 2),
-        "approach": "Transfer Learning (Self-supervised pretraining + Fine-tuning)"
-    }
-    training_histories["TabNet_FineTuned"] = {
-        "loss": [float(x) for x in tabnet_finetuned.history["loss"]],
-        "val_accuracy": [float(x) for x in tabnet_finetuned.history["val_accuracy"]],
-        "val_auc": [float(x) for x in tabnet_finetuned.history["val_auc"]]
-    }
+    best_params = grid_search.best_params_
+    best_cv_f1 = float(grid_search.best_score_)
+    print(f"Grid search completed in {tuning_time:.2f}s across {len(grid_search.cv_results_['params'])} candidates (5 folds each).")
+    print(f"Selected Best Parameters: {best_params}")
+    print(f"Best 5-Fold CV F1 Score: {best_cv_f1:.4f}")
 
-    # -------------------------------------------------------------
-    # 3. BASELINE MODELS FOR COMPARISON (4 MODELS TOTAL IN SUITE)
-    # -------------------------------------------------------------
-    print("\n" + "="*60)
-    print("PHASE 3: Baseline Models Training")
-    print("="*60)
+    best_xgb = grid_search.best_estimator_
+    joblib.dump(best_xgb, os.path.join(models_dir, "xgboost_tuned.joblib"))
+    # Also save as primary xgboost.joblib for seamless inference engine loading
+    joblib.dump(best_xgb, os.path.join(models_dir, "xgboost.joblib"))
+    print("Saved fine-tuned XGBoost model to models/xgboost_tuned.joblib and models/xgboost.joblib")
+
+    # -------------------------------------------------------------------------
+    # 3. BASELINE ENSEMBLES & COMPARISON MODELS
+    # -------------------------------------------------------------------------
+    print("\n" + "="*70)
+    print("STEP 3: Training Standard Baseline Models for Fair Comparison")
+    print("="*70)
 
     baselines = {
         "Random Forest": (
             RandomForestClassifier(n_estimators=150, max_depth=12, random_state=random_state, n_jobs=1),
-            "random_forest.joblib"
-        ),
-        "XGBoost": (
-            XGBClassifier(n_estimators=150, max_depth=5, learning_rate=0.05, random_state=random_state, eval_metric="logloss", n_jobs=1),
-            "xgboost.joblib"
+            "random_forest.joblib",
+            "Bagging ensemble of 150 decorrelated decision trees; evaluates variance reduction"
         ),
         "Gradient Boosting (GBM)": (
             GradientBoostingClassifier(n_estimators=100, max_depth=5, learning_rate=0.05, random_state=random_state),
-            "gradient_boosting.joblib"
+            "gradient_boosting.joblib",
+            "Sequential residual gradient boosting; evaluates standard boosting without second-order Taylor expansion"
+        ),
+        "Logistic Regression": (
+            LogisticRegression(max_iter=1000, random_state=random_state),
+            "logistic_regression.joblib",
+            "Linear classification baseline with L2 regularization; tests linear separability"
         )
     }
 
-    for name, (model, filename) in baselines.items():
+    for name, (model, filename, purpose) in baselines.items():
         t0 = time.time()
         model.fit(X_train, y_train)
         duration = time.time() - t0
+        joblib.dump(model, os.path.join(models_dir, filename))
+        print(f"Trained {name:25s} in {duration:.2f}s | Purpose: {purpose}")
 
-        save_path = os.path.join(models_dir, filename)
-        joblib.dump(model, save_path)
-
-        preds = model.predict(X_val)
-        probs = model.predict_proba(X_val)[:, 1] if hasattr(model, "predict_proba") else None
-
-        val_results[name] = {
-            "accuracy": float(accuracy_score(y_val, preds)),
-            "precision": float(precision_score(y_val, preds)),
-            "recall": float(recall_score(y_val, preds)),
-            "f1": float(f1_score(y_val, preds)),
-            "roc_auc": float(roc_auc_score(y_val, probs)) if probs is not None else 0.0,
-            "training_time_seconds": round(duration, 2),
-            "approach": "Baseline Supervised"
-        }
-        print(f"Trained {name:22s} in {duration:.2f}s | Val Acc: {val_results[name]['accuracy']:.4f} | Val F1: {val_results[name]['f1']:.4f} | Val AUC: {val_results[name]['roc_auc']:.4f}")
-
-    # -------------------------------------------------------------
-    # 5. SUMMARY AND METADATA SAVING
-    # -------------------------------------------------------------
-    print("\n" + "="*60)
-    print("VALIDATION SUMMARY (All Models)")
-    print("="*60)
-    for model_name, res in sorted(val_results.items(), key=lambda x: x[1]["f1"], reverse=True):
-        print(f"{model_name:32s} | Acc: {res['accuracy']:.4f} | F1: {res['f1']:.4f} | AUC: {res['roc_auc']:.4f} | Time: {res['training_time_seconds']}s")
-
-    # Save training history and metadata
-    with open(os.path.join(models_dir, "training_history.json"), "w") as f:
-        json.dump(training_histories, f, indent=2)
-
-    model_metadata = {
+    # -------------------------------------------------------------------------
+    # 4. RECORD TUNING METADATA
+    # -------------------------------------------------------------------------
+    tuning_metadata = {
         "project_name": "CircuitGuard AI",
-        "primary_model": "TabNet (Pretrained + Fine-Tuned)",
-        "approach": "Self-supervised feature reconstruction pretraining followed by supervised classification fine-tuning",
+        "primary_model": "XGBoost (Fine-Tuned)",
+        "tuning_strategy": "5-Fold Stratified Cross-Validation on Training + Validation Data",
+        "scoring_metric": "f1 (Positive class = 1: Maintenance Required)",
         "random_state": random_state,
-        "input_dim": int(X_train.shape[1]),
-        "feature_names": feature_names,
-        "class_labels": {0: "No Maintenance Required", 1: "Maintenance Required"},
-        "validation_benchmarks": val_results,
-        "total_training_walltime_seconds": round(time.time() - start_all, 2),
-        "device": "macOS M4 (Accelerate / MPS / CPU)"
+        "search_space": param_grid,
+        "total_candidates": len(grid_search.cv_results_["params"]),
+        "total_fits": len(grid_search.cv_results_["params"]) * 5,
+        "selected_best_parameters": best_params,
+        "best_cv_f1_score": best_cv_f1,
+        "tuning_walltime_seconds": round(tuning_time, 2),
+        "training_walltime_total_seconds": round(time.time() - start_total, 2)
     }
 
     with open(os.path.join(models_dir, "model_metadata.json"), "w") as f:
-        json.dump(model_metadata, f, indent=2)
-    print(f"\nSaved metadata to {os.path.join(models_dir, 'model_metadata.json')}")
+        json.dump(tuning_metadata, f, indent=2)
+    print(f"\nSaved tuning metadata to {os.path.join(models_dir, 'model_metadata.json')}")
 
-    return val_results
+    # Clean up any legacy TabNet files from models directory
+    for legacy_file in ["tabnet_finetuned.zip", "tabnet_pretrainer.zip", "tabnet_scratch.zip"]:
+        path = os.path.join(models_dir, legacy_file)
+        if os.path.exists(path):
+            os.remove(path)
+            print(f"Removed legacy artifact: {legacy_file}")
+
+    print("\nModel training and tuning pipeline completed successfully!")
 
 if __name__ == "__main__":
-    train_all_models()
+    train_and_tune_models()

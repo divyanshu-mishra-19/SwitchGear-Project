@@ -22,13 +22,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PyTorch CPU first (keeps image small)
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir torch>=2.1.0 --index-url https://download.pytorch.org/whl/cpu
-
-# Install remaining dependencies
+# Install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy backend, models, dataset, reports
 COPY backend/ ./backend/

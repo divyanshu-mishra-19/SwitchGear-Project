@@ -10,13 +10,13 @@ cd "$SCRIPT_DIR"
 export OMP_NUM_THREADS=1
 export KMP_DUPLICATE_LIB_OK=True
 
-# 1. Detect the Python interpreter that has the required ML libraries (pytorch_tabnet, torch, fastapi)
+# 1. Detect the Python interpreter that has the required ML libraries (xgboost, fastapi, uvicorn)
 PYTHON_BIN=""
-if [ -x "/opt/anaconda3/bin/python3" ] && /opt/anaconda3/bin/python3 -c "import pytorch_tabnet, fastapi, uvicorn" >/dev/null 2>&1; then
+if [ -x "/opt/anaconda3/bin/python3" ] && /opt/anaconda3/bin/python3 -c "import xgboost, fastapi, uvicorn" >/dev/null 2>&1; then
     PYTHON_BIN="/opt/anaconda3/bin/python3"
-elif python3 -c "import pytorch_tabnet, fastapi, uvicorn" >/dev/null 2>&1; then
+elif python3 -c "import xgboost, fastapi, uvicorn" >/dev/null 2>&1; then
     PYTHON_BIN="python3"
-elif python -c "import pytorch_tabnet, fastapi, uvicorn" >/dev/null 2>&1; then
+elif python -c "import xgboost, fastapi, uvicorn" >/dev/null 2>&1; then
     PYTHON_BIN="python"
 elif [ -x "/opt/anaconda3/bin/python" ]; then
     PYTHON_BIN="/opt/anaconda3/bin/python"

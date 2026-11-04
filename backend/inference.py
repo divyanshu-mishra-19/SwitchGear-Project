@@ -1,7 +1,9 @@
 """
 CircuitGuard AI - Inference Engine
-Loads trained models and preprocessing pipelines once at startup,
-validates inputs, generates calibrated predictions, and provides local explainability.
+Loads trained models (XGBoost Fine-Tuned, XGBoost Baseline, Random Forest, Gradient Boosting)
+and preprocessing pipeline once at startup.
+Generates predictions, calibrated class probabilities, and local feature importance rankings.
+TabNet has been completely removed in accordance with project requirements.
 """
 
 import os
@@ -16,7 +18,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import joblib
-from pytorch_tabnet.tab_model import TabNetClassifier
 
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -29,7 +30,7 @@ class ModelInferenceEngine:
         self.metadata = None
         self.metrics = None
         self.models = {}
-        self.default_model_name = "TabNet (Transfer Learning)"
+        self.default_model_name = "XGBoost (Fine-Tuned)"
         self.load_all_artifacts()
 
     def load_all_artifacts(self):
@@ -61,31 +62,34 @@ class ModelInferenceEngine:
         else:
             self.metrics = {}
 
-        # 4. Load TabNet Transfer Learning (Pretrained + Fine-Tuned)
-        tabnet_path = os.path.join(self.models_dir, "tabnet_finetuned.zip")
-        if os.path.exists(tabnet_path):
-            try:
-                clf = TabNetClassifier()
-                clf.load_model(tabnet_path)
-                self.models["TabNet (Transfer Learning)"] = clf
-                print("Loaded primary TabNet fine-tuned model.")
-            except Exception as e:
-                print(f"Warning: Failed to load TabNet model: {e}")
-
-        # 5. Load Baseline Models (Total 4 models in suite)
-        baselines = {
+        # 4. Load Models Suite
+        models_to_load = {
+            "XGBoost (Fine-Tuned)": "xgboost_tuned.joblib",
+            "XGBoost (Baseline)": "xgboost_baseline.joblib",
             "Random Forest": "random_forest.joblib",
-            "XGBoost": "xgboost.joblib",
             "Gradient Boosting (GBM)": "gradient_boosting.joblib"
         }
-        for name, filename in baselines.items():
+
+        # Fallback if xgboost_tuned is named xgboost.joblib
+        for name, filename in models_to_load.items():
             filepath = os.path.join(self.models_dir, filename)
+            if not os.path.exists(filepath) and name == "XGBoost (Fine-Tuned)":
+                filepath = os.path.join(self.models_dir, "xgboost.joblib")
+
             if os.path.exists(filepath):
                 try:
                     self.models[name] = joblib.load(filepath)
-                    print(f"Loaded {name} baseline model.")
+                    print(f"Loaded model: {name}")
                 except Exception as e:
                     print(f"Warning: Failed to load {name}: {e}")
+
+        # Also load Logistic Regression if available as an optional baseline
+        lr_path = os.path.join(self.models_dir, "logistic_regression.joblib")
+        if os.path.exists(lr_path):
+            try:
+                self.models["Logistic Regression"] = joblib.load(lr_path)
+            except Exception:
+                pass
 
         if not self.models:
             raise RuntimeError("No models were successfully loaded!")
@@ -106,8 +110,9 @@ class ModelInferenceEngine:
 
     def predict_single(self, input_data: dict, model_name: str = None) -> dict:
         if not model_name or model_name not in self.models:
-            if model_name in ["TabNet (Pretrained + Fine-Tuned)", "TabNet"]:
-                model_name = "TabNet (Transfer Learning)"
+            # Handle aliases
+            if model_name in ["XGBoost", "xgboost"]:
+                model_name = "XGBoost (Fine-Tuned)"
             else:
                 model_name = self.default_model_name if self.default_model_name in self.models else list(self.models.keys())[0]
 
@@ -117,36 +122,23 @@ class ModelInferenceEngine:
         # Transform using fitted pipeline
         X_trans = self.pipeline.transform(df_raw)
 
-        # Model Inference
-        if "TabNet" in model_name:
-            X_tensor = X_trans.astype(np.float32)
-            preds = model.predict(X_tensor)
-            probs = model.predict_proba(X_tensor)[0]
-            pred_class = int(preds[0])
+        preds = model.predict(X_trans)
+        pred_class = int(preds[0])
+        if hasattr(model, "predict_proba"):
+            probs = model.predict_proba(X_trans)[0]
             prob_0 = float(probs[0])
             prob_1 = float(probs[1])
-
-            # Local Explainability using TabNet attention masks
-            try:
-                explain_matrix, _ = model.explain(X_tensor)
-                feature_scores = np.abs(explain_matrix[0])
-            except Exception:
-                feature_scores = np.ones(X_trans.shape[1])
         else:
-            preds = model.predict(X_trans)
-            pred_class = int(preds[0])
-            if hasattr(model, "predict_proba"):
-                probs = model.predict_proba(X_trans)[0]
-                prob_0 = float(probs[0])
-                prob_1 = float(probs[1])
-            else:
-                prob_1 = 1.0 if pred_class == 1 else 0.0
-                prob_0 = 1.0 - prob_1
+            prob_1 = 1.0 if pred_class == 1 else 0.0
+            prob_0 = 1.0 - prob_1
 
-            if hasattr(model, "feature_importances_"):
-                feature_scores = model.feature_importances_ * np.abs(X_trans[0])
-            else:
-                feature_scores = np.abs(X_trans[0])
+        # Local feature attribution
+        if hasattr(model, "feature_importances_"):
+            feature_scores = model.feature_importances_ * np.abs(X_trans[0])
+        elif hasattr(model, "coef_"):
+            feature_scores = np.abs(model.coef_[0]) * np.abs(X_trans[0])
+        else:
+            feature_scores = np.abs(X_trans[0])
 
         confidence = prob_1 if pred_class == 1 else prob_0
         pred_label = self.metadata["target_classes"].get(str(pred_class), "Maintenance Required" if pred_class == 1 else "No Maintenance Required")
@@ -159,7 +151,6 @@ class ModelInferenceEngine:
         top_features_list = []
         for idx in top_indices:
             raw_feat_name = feature_names[idx].replace("num__", "").replace("cat__", "")
-            # If one-hot category, find the parent feature name
             parent_feat = raw_feat_name.split("_")[0] if "_" in raw_feat_name else raw_feat_name
             actual_val = input_data.get(raw_feat_name, input_data.get(parent_feat, "N/A"))
             unit = units_map.get(raw_feat_name, units_map.get(parent_feat, ""))
@@ -170,19 +161,21 @@ class ModelInferenceEngine:
                 "unit": unit
             })
 
-        # Factual explanation
+        # Factual explanation (explicitly clarifying estimated probability vs guaranteed accuracy)
         top_f1 = top_features_list[0]["feature"]
         top_f2 = top_features_list[1]["feature"]
         if pred_class == 1:
             explanation = (
-                f"Model identifies an elevated risk of breaker degradation (confidence: {confidence*100:.1f}%). "
-                f"The decision is primarily weighted by '{top_f1}' (score: {top_features_list[0]['importance_score']}) "
-                f"and '{top_f2}' (score: {top_features_list[1]['importance_score']})."
+                f"Model estimates a {confidence*100:.1f}% class probability for '{pred_label}'. "
+                f"Primary indicators influencing this prediction are '{top_f1}' (score: {top_features_list[0]['importance_score']}) "
+                f"and '{top_f2}' (score: {top_features_list[1]['importance_score']}). "
+                f"Note: Estimated probability indicates model confidence calibration and does not guarantee operational correctness."
             )
         else:
             explanation = (
-                f"Model determines operational parameters are within safe operating limits (confidence: {confidence*100:.1f}%). "
-                f"Influential stability indicators include '{top_f1}' and '{top_f2}'."
+                f"Model estimates a {confidence*100:.1f}% class probability for '{pred_label}'. "
+                f"Key stability indicators include '{top_f1}' and '{top_f2}'. "
+                f"Note: Estimated probability indicates model confidence calibration and does not guarantee operational correctness."
             )
 
         key_summary = {
@@ -198,6 +191,7 @@ class ModelInferenceEngine:
             "predicted_class": pred_class,
             "predicted_label": pred_label,
             "confidence": round(confidence, 4),
+            "estimated_class_probability": round(confidence, 4),
             "probabilities": {
                 "No Maintenance Required": round(prob_0, 4),
                 "Maintenance Required": round(prob_1, 4)
@@ -207,8 +201,8 @@ class ModelInferenceEngine:
             "top_influential_features": top_features_list,
             "explanation": explanation,
             "disclaimer": (
-                "This prediction is intended for educational and decision-support purposes. "
-                "It is not a replacement for professional circuit-breaker inspection or safety procedures."
+                "Prediction probabilities reflect statistical classification estimates based on training telemetry. "
+                "They are intended for decision-support and do not replace certified electrical inspection or safety guidelines."
             )
         }
 
@@ -216,21 +210,32 @@ class ModelInferenceEngine:
         results = []
         votes = {0: 0, 1: 0}
 
-        for model_name in self.get_available_models():
+        # Focus comparison on the 4 primary models
+        primary_models = [m for m in ["XGBoost (Fine-Tuned)", "XGBoost (Baseline)", "Random Forest", "Gradient Boosting (GBM)"] if m in self.models]
+        if not primary_models:
+            primary_models = self.get_available_models()
+
+        for model_name in primary_models:
             res = self.predict_single(input_data, model_name=model_name)
             pred_cls = res["predicted_class"]
             votes[pred_cls] += 1
 
             test_metric = self.metrics.get(model_name, {})
+            cm_dict = test_metric.get("confusion_matrix", {})
+
             results.append({
                 "model_name": model_name,
                 "predicted_class": pred_cls,
                 "predicted_label": res["predicted_label"],
                 "confidence": res["confidence"],
+                "estimated_class_probability": res["confidence"],
                 "probabilities": res["probabilities"],
                 "test_accuracy": test_metric.get("accuracy", None),
                 "test_f1": test_metric.get("f1_score", None),
-                "test_roc_auc": test_metric.get("roc_auc", None)
+                "test_precision": test_metric.get("precision", None),
+                "test_recall": test_metric.get("recall", None),
+                "test_roc_auc": test_metric.get("roc_auc", None),
+                "confusion_matrix": cm_dict
             })
 
         majority_class = 1 if votes[1] > votes[0] else 0
@@ -257,26 +262,19 @@ class ModelInferenceEngine:
         model = self.models[model_name]
         raw_order = self.metadata["raw_features_order"]
 
-        # Ensure all columns exist
         for col in raw_order:
             if col not in df_input.columns:
                 df_input[col] = np.nan
         df_ordered = df_input[raw_order]
 
         X_trans = self.pipeline.transform(df_ordered)
-
-        if "TabNet" in model_name:
-            X_tensor = X_trans.astype(np.float32)
-            preds = model.predict(X_tensor)
-            probs = model.predict_proba(X_tensor)
+        preds = model.predict(X_trans)
+        if hasattr(model, "predict_proba"):
+            probs = model.predict_proba(X_trans)
         else:
-            preds = model.predict(X_trans)
-            if hasattr(model, "predict_proba"):
-                probs = model.predict_proba(X_trans)
-            else:
-                probs = np.zeros((len(preds), 2))
-                for i, p in enumerate(preds):
-                    probs[i, p] = 1.0
+            probs = np.zeros((len(preds), 2))
+            for i, p in enumerate(preds):
+                probs[i, p] = 1.0
 
         items = []
         maint_count = 0
@@ -296,6 +294,7 @@ class ModelInferenceEngine:
                 "predicted_class": cls,
                 "predicted_label": lbl,
                 "confidence": round(conf, 4),
+                "estimated_class_probability": round(conf, 4),
                 "probabilities": {
                     "No Maintenance Required": round(float(probs[i, 0]), 4),
                     "Maintenance Required": round(float(probs[i, 1]), 4)
@@ -318,4 +317,3 @@ def get_engine():
     if engine is None:
         engine = ModelInferenceEngine()
     return engine
-
