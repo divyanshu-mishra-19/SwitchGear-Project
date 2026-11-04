@@ -5,11 +5,7 @@ import {
   AlertTriangle,
   RotateCcw,
   Layers,
-  ChevronDown,
-  ChevronUp,
-  Activity,
-  BookOpen,
-  Info
+  Activity
 } from 'lucide-react';
 
 const API_BASE = '/api';
@@ -33,8 +29,6 @@ export default function App() {
   const [selectedBreaker, setSelectedBreaker] = useState('A');
   const [selectedModel, setSelectedModel] = useState('XGBoost (Fine-Tuned)');
   const [selectedScenario, setSelectedScenario] = useState('Normal Operating Condition');
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showReferences, setShowReferences] = useState(false);
   const [viewMode, setViewMode] = useState('single'); // 'single' | 'compare'
 
   const [scenarios, setScenarios] = useState({});
@@ -401,52 +395,39 @@ export default function App() {
                   backgroundColor: isMaint ? '#FEF2F2' : '#F0FDF4',
                   border: `2px solid ${isMaint ? '#EF4444' : '#22C55E'}`,
                   borderRadius: '12px',
-                  padding: '1.5rem',
-                  marginBottom: '1.75rem',
+                  padding: '1.25rem 1.5rem',
+                  marginBottom: '1.5rem',
                   display: 'flex',
-                  justifyContent: 'space-between',
                   alignItems: 'center',
+                  gap: '1.25rem',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div
-                    style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '50%',
-                      backgroundColor: isMaint ? '#FEE2E2' : '#DCFCE7',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: isMaint ? '#DC2626' : '#16A34A'
-                    }}
-                  >
-                    {isMaint ? <AlertTriangle size={28} /> : <CheckCircle2 size={28} />}
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                      Diagnostic Verdict
-                    </span>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: isMaint ? '#DC2626' : '#16A34A', margin: '2px 0' }}>
-                      {result.predicted_label}
-                    </h3>
-                    <p style={{ fontSize: '0.85rem', color: '#475569', maxWidth: '620px' }}>
-                      {result.explanation}
-                    </p>
-                  </div>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    backgroundColor: isMaint ? '#FEE2E2' : '#DCFCE7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isMaint ? '#DC2626' : '#16A34A',
+                    flexShrink: 0
+                  }}
+                >
+                  {isMaint ? <AlertTriangle size={28} /> : <CheckCircle2 size={28} />}
                 </div>
-
-                <div style={{ textAlign: 'right', paddingLeft: '1.5rem', borderLeft: '1px solid #E2E8F0', minWidth: '150px' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                    Estimated Class Probability
-                  </div>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, color: isMaint ? '#DC2626' : '#16A34A' }}>
-                    {(result.confidence * 100).toFixed(1)}%
-                  </div>
-                  <span style={{ fontSize: '0.68rem', color: '#94A3B8', display: 'block', marginTop: '2px' }}>
-                    Calibrated output (not guaranteed accuracy)
+                <div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                    Diagnostic Verdict
                   </span>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: isMaint ? '#DC2626' : '#16A34A', margin: '2px 0' }}>
+                    {result.predicted_label}
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0 }}>
+                    {result.explanation}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -456,15 +437,15 @@ export default function App() {
                   border: '1px dashed #CBD5E1',
                   borderRadius: '12px',
                   padding: '1.5rem',
-                  marginBottom: '1.75rem',
+                  marginBottom: '1.5rem',
                   textAlign: 'center',
                   color: '#64748B'
                 }}
               >
-                <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>
+                <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155', margin: 0 }}>
                   ⚡ Ready to assess circuit breaker health
                 </p>
-                <p style={{ fontSize: '0.82rem', marginTop: '4px' }}>
+                <p style={{ fontSize: '0.82rem', marginTop: '4px', marginBottom: 0 }}>
                   Adjust the operating sliders below and click <strong>"Predict Maintenance"</strong> or choose a preset condition.
                 </p>
               </div>
@@ -481,7 +462,9 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     <span>SF6 Gas Density (kg/m³)</span>
-                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>{features.SF6_density}</span>
+                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>
+                      {Number(features.SF6_density).toFixed(2)}
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -503,7 +486,9 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     <span>Ambient Cabinet Temperature (°C)</span>
-                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>{features.Ambient_cabinet_temperature}°C</span>
+                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>
+                      {Number(features.Ambient_cabinet_temperature).toFixed(1)}°C
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -525,7 +510,9 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     <span>Spring Motor Run Time (seconds)</span>
-                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>{features.Motor_run_time}s</span>
+                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>
+                      {Number(features.Motor_run_time).toFixed(1)}s
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -547,7 +534,9 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     <span>Grid Line Voltage (V)</span>
-                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>{features.Line_voltage?.toLocaleString()} V</span>
+                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>
+                      {Math.round(Number(features.Line_voltage)).toLocaleString()} V
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -569,7 +558,9 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     <span>Total Operations Count (cycles)</span>
-                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>{features.Total_operation_count?.toLocaleString()}</span>
+                    <span style={{ color: '#1E88E5', fontWeight: 700 }}>
+                      {Math.round(Number(features.Total_operation_count)).toLocaleString()}
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -626,50 +617,6 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Optional Collapsible Advanced Details */}
-            <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1rem', marginBottom: '1.5rem' }}>
-              <button
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  background: 'none',
-                  border: 'none',
-                  color: '#64748B',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                {showAdvanced ? 'Hide Additional Technical Sensors' : 'Show Additional Technical Sensors (22 More)'}
-              </button>
-
-              {showAdvanced && (
-                <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', fontSize: '0.8rem' }}>
-                  <div className="app-card" style={{ padding: '0.75rem' }}>
-                    <span style={{ color: '#64748B' }}>Open Latch Time:</span> <strong>{features.Open_latch_time}s</strong>
-                  </div>
-                  <div className="app-card" style={{ padding: '0.75rem' }}>
-                    <span style={{ color: '#64748B' }}>Close Latch Time:</span> <strong>{features.Close_latch_time}s</strong>
-                  </div>
-                  <div className="app-card" style={{ padding: '0.75rem' }}>
-                    <span style={{ color: '#64748B' }}>Fault Operations:</span> <strong>{features.Fault_operations_count}</strong>
-                  </div>
-                  <div className="app-card" style={{ padding: '0.75rem' }}>
-                    <span style={{ color: '#64748B' }}>Contact Wear Life:</span> <strong>{features.Contact_life?.toLocaleString()}</strong>
-                  </div>
-                  <div className="app-card" style={{ padding: '0.75rem' }}>
-                    <span style={{ color: '#64748B' }}>Arcing Time:</span> <strong>{features.Open_operation_arcing_time}s</strong>
-                  </div>
-                  <div className="app-card" style={{ padding: '0.75rem' }}>
-                    <span style={{ color: '#64748B' }}>Motor I²t Stress:</span> <strong>{features.Motor_I2T} A²·s</strong>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -923,52 +870,6 @@ export default function App() {
             )}
           </div>
         )}
-
-        {/* ------------------------------------------------------------- */}
-        {/* VERIFIED REFERENCES & METHODOLOGY FOOTER                      */}
-        {/* ------------------------------------------------------------- */}
-        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1.25rem', marginTop: '1.5rem' }}>
-          <button
-            onClick={() => setShowReferences(!showReferences)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              background: 'none',
-              border: 'none',
-              color: '#475569',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            <BookOpen size={16} color="#1E88E5" />
-            {showReferences ? 'Hide Verified Citations & References' : 'View Verified Citations & References'}
-            {showReferences ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-
-          {showReferences && (
-            <div style={{ marginTop: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: '#475569', lineHeight: 1.5 }}>
-              <p style={{ fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem' }}>
-                Verified Official References & Data Provenance:
-              </p>
-              <ul style={{ paddingLeft: '1.25rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <li>
-                  <strong>Dataset & Substation Maintenance Benchmark:</strong> Ghosh S, Mittal G (2026). <em>"Federated learning for critical electrical infrastructure - handling data heterogeneity for predictive maintenance of substation equipment"</em>, Frontiers in Artificial Intelligence 8:1697175. GitHub repository: <a href="https://github.com/sghosh27/Federated-Learning-for-Critical-Electrical-Infrastructure-Maintenance" target="_blank" rel="noreferrer" style={{ color: '#1E88E5' }}>sghosh27/Federated-Learning-for-Critical-Electrical-Infrastructure-Maintenance</a> (Apache 2.0 License). <em>Note: As stated by the authors, this dataset is semi-synthetically derived for research and educational purposes based on utility substation operational monitoring guidelines.</em>
-                </li>
-                <li>
-                  <strong>XGBoost Algorithm & Optimization:</strong> Chen T, Guestrin C (2016). <em>"XGBoost: A Scalable Tree Boosting System"</em>, Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD '16), pp. 785–794. Official documentation: <a href="https://xgboost.readthedocs.io/" target="_blank" rel="noreferrer" style={{ color: '#1E88E5' }}>xgboost.readthedocs.io</a>.
-                </li>
-                <li>
-                  <strong>Random Forest:</strong> Breiman L (2001). <em>"Random Forests"</em>, Machine Learning, 45(1), pp. 5–32. Scikit-learn documentation: <a href="https://scikit-learn.org/stable/modules/ensemble.html" target="_blank" rel="noreferrer" style={{ color: '#1E88E5' }}>scikit-learn.org/stable/modules/ensemble.html</a>.
-                </li>
-                <li>
-                  <strong>Gradient Tree Boosting:</strong> Friedman JH (2001). <em>"Greedy Function Approximation: A Gradient Boosting Machine"</em>, The Annals of Statistics, 29(5), pp. 1189–1232.
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
       </main>
     </div>
   );

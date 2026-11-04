@@ -165,18 +165,9 @@ class ModelInferenceEngine:
         top_f1 = top_features_list[0]["feature"]
         top_f2 = top_features_list[1]["feature"]
         if pred_class == 1:
-            explanation = (
-                f"Model estimates a {confidence*100:.1f}% class probability for '{pred_label}'. "
-                f"Primary indicators influencing this prediction are '{top_f1}' (score: {top_features_list[0]['importance_score']}) "
-                f"and '{top_f2}' (score: {top_features_list[1]['importance_score']}). "
-                f"Note: Estimated probability indicates model confidence calibration and does not guarantee operational correctness."
-            )
+            explanation = f"Primary indicators triggering maintenance: '{top_f1}' and '{top_f2}'."
         else:
-            explanation = (
-                f"Model estimates a {confidence*100:.1f}% class probability for '{pred_label}'. "
-                f"Key stability indicators include '{top_f1}' and '{top_f2}'. "
-                f"Note: Estimated probability indicates model confidence calibration and does not guarantee operational correctness."
-            )
+            explanation = f"Key operational stability indicators: '{top_f1}' and '{top_f2}'."
 
         key_summary = {
             "Product Variant": input_data.get("Product_variant", "N/A"),
