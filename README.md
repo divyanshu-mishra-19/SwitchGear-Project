@@ -2,9 +2,9 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-[![PyTorch TabNet](https://img.shields.io/badge/Model-PyTorch%20TabNet-red.svg)](https://github.com/dreamquark-ai/tabnet)
+[![XGBoost](https://img.shields.io/badge/Primary%20Model-Fine--Tuned%20XGBoost-brightgreen.svg)](https://xgboost.readthedocs.io/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
-[![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B.svg)](https://streamlit.io)
+[![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-61DAFB.svg)](https://vitejs.dev/)
 
 ---
 
@@ -92,51 +92,44 @@ Traditional substation maintenance strategies rely heavily on:
 
 ---
 
-## 5. Machine Learning Architecture & Transfer Learning
+## 5. Machine Learning Architecture & Fine-Tuning
 
-### Approach: PyTorch TabNet Self-Supervised Pretraining & Fine-Tuning
-For tabular predictive maintenance telemetry, standard neural networks often struggle with feature sparsity and non-linear interactions. We implement **TabNet** (Arik & Pfister, Google Cloud AI):
+### Primary Model: Fine-Tuned XGBoost
+Gradient-boosted decision trees sequentially minimize pseudo-residuals using second-order Taylor approximations, excelling on tabular telemetry with mixed continuous and one-hot encoded categorical inputs.
 
-```
-Unlabeled Telemetry X ──► [ TabNet Pretrainer (Entmax Masking) ] ──► Masked Reconstruction Loss
-                                        │
-                                        ▼ (Weight Transfer)
-Supervised Telemetry (X, y) ──► [ TabNet Classifier ] ──► Supervised Fine-Tuning Loss ──► Maintenance Prediction
-```
+* **Optimization Strategy:** 5-Fold Stratified Cross-Validation strictly over the training and validation split ($N=4,250$), leaving the 750-sample test set untouched.
+* **Scoring Metric:** Positive-class F1-score (`f1`).
+* **Selected Best Parameters:**
+  * `colsample_bytree`: `0.8`
+  * `learning_rate`: `0.05`
+  * `max_depth`: `6`
+  * `min_child_weight`: `1`
+  * `n_estimators`: `200`
+  * `subsample`: `1.0`
 
-1. **Unsupervised Pretraining Phase**:
-   - Model: `TabNetPretrainer(mask_type='entmax', n_d=16, n_a=16, n_steps=3, gamma=1.3)`.
-   - Objective: 50% of the 35 transformed features are masked at each step; the network reconstructs the masked values via self-supervised learning.
-   - Benefit: The feature transformers learn physical correlations between SF6 density, mechanical latch speeds, and charging motor wear without using target labels.
-2. **Supervised Fine-Tuning Phase**:
-   - The pretrained weights are transferred to `TabNetClassifier`.
-   - The model is fine-tuned on maintenance labels using Adam optimizer ($lr = 0.02$) with early stopping on validation AUC.
-3. **Ablation Comparison**:
-   - An identical TabNet model is trained strictly from scratch (without pretraining) to empirically measure the benefit of transfer learning.
-4. **Supervised Baselines**:
-   - Random Forest (150 trees, max depth 12)
-   - XGBoost (150 trees, max depth 5, lr 0.05)
-   - LightGBM (150 trees, max depth 5, lr 0.05)
-   - Multi-Layer Perceptron (64-32 hidden neurons)
-   - Logistic Regression (L2 regularized)
+### Multi-Model Comparison Suite
+To ensure objective, reproducible performance validation, the fine-tuned XGBoost model is benchmarked against 3 standard baseline architectures trained on the exact same pipeline and data split:
+1. **XGBoost (Baseline):** Default un-tuned XGBoost (`lr=0.3, max_depth=6, n_estimators=100`) providing direct before-and-after tuning comparison.
+2. **Random Forest:** Parallel bagging ensemble of 150 decorrelated decision trees (`max_depth=12`).
+3. **Gradient Boosting (GBM):** Scikit-Learn's sequential residual boosting (`lr=0.05, max_depth=5, n_estimators=100`).
 
 ---
 
 ## 6. Real Test-Set Evaluation Results
 
-The models were evaluated on the untouched 750-sample test set. **All metrics are genuine and reproducible**:
+All models were evaluated on the identical untouched 750-sample holdout test set ($N=750$: 445 Normal, 305 Maintenance Required). **All metrics are genuine and reproducible**:
 
-| Model Architecture | Paradigm | Test Accuracy | Precision | Recall | F1-Score | ROC-AUC | PR-AUC |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Random Forest** | Supervised Baseline | **92.00%** | **97.67%** | 82.30% | **89.32%** | **0.9794** | **0.9732** |
-| **Gradient Boosting (GBM)** | Supervised Baseline | 91.60% | 97.27% | 81.64% | 88.77% | 0.9794 | 0.9733 |
-| **TabNet (Scratch)** | Supervised Scratch | 91.60% | 94.49% | 84.26% | 89.08% | 0.9809 | 0.9747 |
-| **XGBoost** | Supervised Baseline | 90.93% | 94.38% | 82.62% | 88.11% | 0.9800 | 0.9737 |
-| **TabNet (Pretrained + FT)** | Transfer Learning | **90.27%** | **99.15%** | 76.72% | **86.51%** | **0.9777** | **0.9703** |
+| Model Architecture | Role | Test Accuracy | Precision (Pos=1) | Recall (Pos=1) | F1-Score | ROC-AUC | False Alarms (FP) | Missed Faults (FN) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **XGBoost (Fine-Tuned)** | **Primary Model** | **91.60%** | **93.53%** | **85.25%** | **89.19%** | **0.9826** | **18** | **45** |
+| **XGBoost (Baseline)** | Direct Baseline | 91.33% | 91.67% | 86.56% | 89.04% | 0.9807 | 24 | 41 |
+| **Random Forest** | Bagging Baseline | 92.00% | 97.67% | 82.30% | 89.32% | 0.9794 | 6 | 54 |
+| **Gradient Boosting (GBM)** | Boosting Baseline | 91.60% | 97.27% | 81.64% | 88.77% | 0.9794 | 7 | 56 |
 
 ### Key Findings
-- **High Precision on TabNet**: TabNet (Pretrained + Fine-Tuned) achieved an exceptional **99.15% precision** (only 2 false alarms out of 238 predicted maintenance flags), which is critical for electrical utilities to avoid costly unnecessary truck dispatches.
-- **Non-Linear Tree and Attention Superiority**: Tree models and TabNet significantly outperformed linear models (Logistic Regression F1: 72.83%), proving that circuit-breaker degradation involves non-linear thermal-mechanical interactions.
+- **Superior Discriminatory Power**: Fine-Tuned XGBoost achieved the highest ROC-AUC (**0.9826**), providing optimal sensitivity for threshold tuning in high-voltage utility grids.
+- **Tuning Trade-off**: Hyperparameter optimization reduced false alarms by 25% compared to baseline XGBoost (18 vs 24 FP) while maintaining strong fault recall (85.25%).
+- **Tree-Model Consistency**: All ensemble architectures demonstrated high test accuracy (>91%) and strong F1-scores (~89%), confirming robust generalization on physical breaker telemetry without data leakage.
 
 ---
 
@@ -225,7 +218,7 @@ curl -X POST "http://localhost:8000/predict" \
       "Restrike_occurrence": 0.0,
       "Open_operation_arcing_time": 0.025
     },
-    "model_name": "TabNet (Pretrained + Fine-Tuned)"
+    "model_name": "XGBoost (Fine-Tuned)"
   }'
 ```
 

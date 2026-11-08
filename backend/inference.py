@@ -83,14 +83,6 @@ class ModelInferenceEngine:
                 except Exception as e:
                     print(f"Warning: Failed to load {name}: {e}")
 
-        # Also load Logistic Regression if available as an optional baseline
-        lr_path = os.path.join(self.models_dir, "logistic_regression.joblib")
-        if os.path.exists(lr_path):
-            try:
-                self.models["Logistic Regression"] = joblib.load(lr_path)
-            except Exception:
-                pass
-
         if not self.models:
             raise RuntimeError("No models were successfully loaded!")
 

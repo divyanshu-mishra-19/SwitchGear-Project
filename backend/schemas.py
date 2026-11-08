@@ -77,7 +77,7 @@ class CircuitBreakerInput(BaseModel):
 
 class PredictionRequest(BaseModel):
     features: CircuitBreakerInput
-    model_name: Optional[str] = Field("TabNet (Pretrained + Fine-Tuned)", description="Model selection")
+    model_name: Optional[str] = Field("XGBoost (Fine-Tuned)", description="Model selection")
 
 class TopFeatureContribution(BaseModel):
     feature: str
