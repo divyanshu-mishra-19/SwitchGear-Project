@@ -422,12 +422,9 @@ export default function App() {
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
                     Diagnostic Verdict
                   </span>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: isMaint ? '#DC2626' : '#16A34A', margin: '2px 0' }}>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: isMaint ? '#DC2626' : '#16A34A', margin: '2px 0 0 0' }}>
                     {result.predicted_label}
                   </h3>
-                  <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0 }}>
-                    {result.explanation}
-                  </p>
                 </div>
               </div>
             ) : (
