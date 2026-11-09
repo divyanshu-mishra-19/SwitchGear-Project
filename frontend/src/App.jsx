@@ -10,12 +10,12 @@ import {
 
 const API_BASE = '/api';
 
-const BREAKER_TYPES = [
-  { id: 'A', name: 'Type A — SF6 Dead-Tank (145 kV)', desc: '145 kV Utility Grid Substation' },
-  { id: 'B', name: 'Type B — SF6 Live-Tank (145 kV)', desc: '145 kV High-Voltage Transmission' },
-  { id: 'C', name: 'Type C — Gas-Insulated GIS (126 kV)', desc: '126 kV Compact Substation' },
-  { id: 'D', name: 'Type D — High-Voltage Outdoor (145 kV)', desc: '145 kV Heavy Duty Substation' },
-  { id: 'E', name: 'Type E — Industrial Feeder (115 kV)', desc: '115 kV Distribution Feeder' }
+const VARIANTS = [
+  { id: 'A', name: 'Variant A' },
+  { id: 'B', name: 'Variant B' },
+  { id: 'C', name: 'Variant C' },
+  { id: 'D', name: 'Variant D' },
+  { id: 'E', name: 'Variant E' }
 ];
 
 const MODELS = [
@@ -219,10 +219,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* 1. Circuit Breaker Type Dropdown */}
+        {/* 1. Product Variant Dropdown */}
         <div>
           <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-            Circuit Breaker Type
+            Product Variant
           </label>
           <select
             className="input-field"
@@ -230,15 +230,12 @@ export default function App() {
             onChange={(e) => handleBreakerChange(e.target.value)}
             style={{ fontWeight: 600, cursor: 'pointer' }}
           >
-            {BREAKER_TYPES.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
+            {VARIANTS.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
               </option>
             ))}
           </select>
-          <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginTop: '4px' }}>
-            {BREAKER_TYPES.find((b) => b.id === selectedBreaker)?.desc}
-          </span>
         </div>
 
         {/* 2. Demonstration Scenario Dropdown */}
@@ -342,7 +339,7 @@ export default function App() {
               {viewMode === 'compare' ? 'Multi-Model Benchmark & Comparison' : 'Circuit Breaker Assessment'}
             </h2>
             <p style={{ fontSize: '0.85rem', color: '#64748B', marginTop: '2px' }}>
-              {BREAKER_TYPES.find((b) => b.id === selectedBreaker)?.name} • Operating under {selectedModel}
+              {VARIANTS.find((v) => v.id === selectedBreaker)?.name} • Operating under {selectedModel}
             </p>
           </div>
 

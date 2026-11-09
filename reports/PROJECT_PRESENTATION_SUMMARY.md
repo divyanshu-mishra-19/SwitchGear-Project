@@ -7,7 +7,7 @@
 
 * **Project Name:** CircuitGuard AI
 * **Domain:** Power Systems Engineering & Applied Machine Learning
-* **Target Equipment:** High-Voltage Substation Circuit Breakers (72.5 kV – 150 kV SF6 Dead-Tank, Live-Tank, and GIS Units)
+* **Target Equipment:** High-Voltage Substation Circuit Breakers (72.5 kV – 150 kV SF6 Switchgear across Utility Variants A–E)
 * **Core Problem:** Sudden mechanical or dielectric failure of high-voltage circuit breakers causes catastrophic grid blackouts, switchgear explosions, SF6 greenhouse gas leaks, and multi-million-dollar outages. Traditional time-based maintenance (servicing every 3–5 years regardless of condition) is wasteful and misses abrupt mechanical failures.
 * **Our Solution:** A production-ready predictive maintenance system that ingests 28 verified breaker telemetry features, applies **Hyperparameter-Optimized XGBoost** alongside standard bagging and boosting ensemble benchmarks, and delivers real-time health verdicts, calibrated class probabilities, and multi-model consensus via a modern FastAPI and React dashboard.
 
